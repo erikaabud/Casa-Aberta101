@@ -1,0 +1,647 @@
+/* ===== TEMA FANTASIA SOMBRIA - AS CRÔNICAS DE UMBRAETH ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Cinzel', serif;
+  background: #0a0a0a;
+  min-height: 100vh;
+  color: #d4c5a9;
+  background-image: 
+    radial-gradient(ellipse at 10% 20%, rgba(88, 0, 0, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 80%, rgba(44, 0, 88, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.9) 0%, #0a0a0a 100%);
+}
+
+/* ===== BARRA DE NAVEGAÇÃO ===== */
+.barra-navegacao {
+  background: rgba(10, 10, 10, 0.95);
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #4a2c1a;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+}
+
+.container-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icone-logo {
+  font-size: 2rem;
+  text-shadow: 0 0 20px rgba(255, 100, 0, 0.3);
+  animation: pulsarBrilho 3s ease-in-out infinite;
+}
+
+.texto-logo {
+  font-size: 1.8rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #d4a574, #8b5a2b, #d4a574);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(139, 90, 43, 0.3);
+  letter-spacing: 4px;
+}
+
+.subtitulo-logo {
+  font-size: 0.7rem;
+  color: #8b5a2b;
+  letter-spacing: 6px;
+  font-family: 'MedievalSharp', cursive;
+}
+
+.menu-nav {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+}
+
+.menu-nav a {
+  text-decoration: none;
+  color: #d4c5a9;
+  font-weight: 400;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.menu-nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #d4a574, #8b5a2b);
+  transition: width 0.3s;
+}
+
+.menu-nav a:hover {
+  color: #d4a574;
+  text-shadow: 0 0 20px rgba(212, 165, 116, 0.3);
+}
+
+.menu-nav a:hover::after {
+  width: 100%;
+}
+
+.toggle-nav {
+  color: #d4c5a9;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: none;
+}
+
+/* ===== SEÇÃO HEROI ===== */
+.heroi {
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.container-heroi {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(20, 15, 10, 0.95), rgba(10, 10, 10, 0.98));
+  border: 1px solid rgba(74, 44, 26, 0.3);
+  border-radius: 20px;
+  padding: 3rem;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(212, 165, 116, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.emblema-heroi {
+  font-size: 0.8rem;
+  color: #8b5a2b;
+  letter-spacing: 8px;
+  margin-bottom: 1rem;
+  font-family: 'MedievalSharp', cursive;
+}
+
+.conteudo-heroi h1 {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+.texto-brilhante {
+  background: linear-gradient(135deg, #d4a574, #ffd700, #d4a574);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(212, 165, 116, 0.2);
+  animation: brilhar 4s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+
+@keyframes brilhar {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.subtitulo-heroi {
+  font-size: 1.1rem;
+  color: #8b8b7a;
+  font-family: 'MedievalSharp', cursive;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+.botoes-heroi {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.botao-primario {
+  background: linear-gradient(135deg, #4a2c1a, #2a1a0a);
+  color: #d4c5a9;
+  border: 1px solid #8b5a2b;
+  padding: 1rem 2.5rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.4s;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+.botao-primario:hover {
+  background: linear-gradient(135deg, #6a3c2a, #3a2a1a);
+  border-color: #d4a574;
+  box-shadow: 0 0 30px rgba(139, 90, 43, 0.3);
+  transform: translateY(-2px);
+}
+
+.botao-secundario {
+  background: transparent;
+  color: #8b5a2b;
+  border: 1px solid #4a2c1a;
+  padding: 1rem 2.5rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.4s;
+  text-transform: uppercase;
+}
+
+.botao-secundario:hover {
+  background: rgba(74, 44, 26, 0.2);
+  border-color: #8b5a2b;
+  box-shadow: 0 0 20px rgba(139, 90, 43, 0.1);
+}
+
+.estatisticas-heroi {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(74, 44, 26, 0.3);
+  flex-wrap: wrap;
+}
+
+.item-estatistica {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.numero-estatistica {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #d4a574;
+  text-shadow: 0 0 20px rgba(212, 165, 116, 0.2);
+}
+
+.rotulo-estatistica {
+  font-size: 0.7rem;
+  color: #8b8b7a;
+  font-family: 'MedievalSharp', cursive;
+  letter-spacing: 2px;
+}
+
+.divisor-estatistica {
+  color: #4a2c1a;
+  font-size: 1.5rem;
+}
+
+/* ===== IMAGEM DO HEROI / PLACEHOLDER ===== */
+.imagem-heroi {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.moldura-imagem {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  min-height: 400px;
+  border: 2px solid #4a2c1a;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(74, 44, 26, 0.2);
+  background: linear-gradient(135deg, #1a0f0a, #0a0a0a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-imagem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  z-index: 1;
+}
+
+.icone-placeholder {
+  font-size: 4rem;
+  animation: pulsarBrilho 3s ease-in-out infinite;
+}
+
+.texto-placeholder {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #d4a574, #8b5a2b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 6px;
+}
+
+.subtitulo-placeholder {
+  font-size: 1rem;
+  color: #6b5a4a;
+  font-family: 'MedievalSharp', cursive;
+  letter-spacing: 4px;
+}
+
+.sobreposicao-imagem {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(10, 10, 10, 0.8) 100%);
+  pointer-events: none;
+}
+
+.runas-imagem {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(212, 165, 116, 0.15);
+  font-size: 0.8rem;
+  letter-spacing: 8px;
+  font-family: 'MedievalSharp', cursive;
+}
+
+/* ===== SEÇÃO CARACTERÍSTICAS ===== */
+.caracteristicas {
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.caracteristicas h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #d4c5a9;
+  margin-bottom: 3rem;
+  text-shadow: 0 0 40px rgba(212, 165, 116, 0.1);
+  letter-spacing: 4px;
+}
+
+.grade-caracteristicas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.cartao-caracteristica {
+  background: linear-gradient(135deg, rgba(20, 15, 10, 0.95), rgba(10, 10, 10, 0.98));
+  padding: 2.5rem;
+  border-radius: 15px;
+  text-align: center;
+  border: 1px solid rgba(74, 44, 26, 0.2);
+  transition: all 0.5s;
+  position: relative;
+  overflow: hidden;
+}
+
+.cartao-caracteristica:hover {
+  transform: translateY(-10px);
+  border-color: #8b5a2b;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.icone-caracteristica {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.cartao-caracteristica h3 {
+  color: #d4a574;
+  font-size: 1.3rem;
+  margin-bottom: 0.8rem;
+  letter-spacing: 2px;
+}
+
+.cartao-caracteristica p {
+  color: #8b8b7a;
+  font-family: 'MedievalSharp', cursive;
+  line-height: 1.6;
+}
+
+.runa-caracteristica {
+  position: absolute;
+  bottom: 10px;
+  right: 15px;
+  color: rgba(74, 44, 26, 0.1);
+  font-size: 2rem;
+  font-family: 'MedievalSharp', cursive;
+}
+
+/* ===== RODAPÉ ===== */
+.rodape {
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.95), #0a0a0a);
+  border-top: 1px solid rgba(74, 44, 26, 0.2);
+  padding: 3rem 2rem;
+  margin-top: 4rem;
+}
+
+.conteudo-rodape {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.logo-rodape {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.logo-rodape span:first-child {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #d4a574;
+  letter-spacing: 6px;
+}
+
+.subtitulo-rodape {
+  font-size: 0.7rem;
+  color: #8b5a2b;
+  letter-spacing: 8px;
+  font-family: 'MedievalSharp', cursive;
+}
+
+.links-rodape {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.links-rodape a {
+  color: #8b8b7a;
+  text-decoration: none;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  transition: all 0.3s;
+  font-family: 'MedievalSharp', cursive;
+}
+
+.links-rodape a:hover {
+  color: #d4a574;
+  text-shadow: 0 0 20px rgba(212, 165, 116, 0.2);
+}
+
+.copiar-rodape p {
+  color: #4a3c2a;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+}
+
+.runas-rodape {
+  margin-top: 1rem;
+  color: rgba(74, 44, 26, 0.2);
+  font-size: 1.2rem;
+  letter-spacing: 10px;
+  font-family: 'MedievalSharp', cursive;
+}
+
+/* ===== ANIMAÇÕES ===== */
+@keyframes pulsarBrilho {
+  0%, 100% { text-shadow: 0 0 20px rgba(255, 100, 0, 0.3); }
+  50% { text-shadow: 0 0 40px rgba(255, 100, 0, 0.6), 0 0 80px rgba(255, 100, 0, 0.2); }
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 968px) {
+  .container-heroi {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .conteudo-heroi h1 {
+    font-size: 2.8rem;
+  }
+
+  .botoes-heroi {
+    justify-content: center;
+  }
+
+  .estatisticas-heroi {
+    justify-content: center;
+  }
+
+  .menu-nav {
+    display: none;
+  }
+
+  .toggle-nav {
+    display: block;
+  }
+
+  .caracteristicas h2 {
+    font-size: 2rem;
+  }
+
+  .moldura-imagem {
+    min-height: 250px;
+  }
+
+  .texto-placeholder {
+    font-size: 1.8rem;
+  }
+
+  .icone-placeholder {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .conteudo-heroi h1 {
+    font-size: 2rem;
+  }
+
+  .estatisticas-heroi {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .divisor-estatistica {
+    display: none;
+  }
+
+  .botao-primario, .botao-secundario {
+    width: 100%;
+    text-align: center;
+  }
+
+  .links-rodape {
+    gap: 1.5rem;
+  }
+
+  .moldura-imagem {
+    min-height: 200px;
+  }
+
+  .texto-placeholder {
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+  }
+
+  .icone-placeholder {
+    font-size: 2.5rem;
+  }
+
+  .botoes-heroi {
+    flex-direction: column;
+  }
+}
+
+
+/* ===== APP - UMBRAETH THEME ===== */
+
+.App {
+  min-height: 100vh;
+  background: #0a0a0a;
+}
+
+/* ===== BOTÃO DE SAIR ===== */
+.btn-sair {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 0.5rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+}
+
+.btn-sair:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.05);
+}
+
+.botao-rpg.desativado {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: grayscale(0.4);
+}
+
+/* ===== USUÁRIO LOGADO ===== */
+.usuario-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #d4c5a9;
+  font-size: 0.8rem;
+  font-family: 'Cinzel', serif;
+}
+
+.usuario-info span {
+  color: #d4a574;
+  font-weight: 700;
+}
+
+.usuario-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a2c1a, #2a1a0a);
+  border: 1px solid #8b5a2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .usuario-info {
+    font-size: 0.7rem;
+    gap: 0.5rem;
+  }
+
+  .btn-sair {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.6rem;
+  }
+
+  .usuario-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,7 @@
+.barra-modo-dispositivo { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.5rem; background:#121212; border-bottom:1px solid rgba(212,175,55,.2); position:sticky; top:0; z-index:20; }
+.barra-modo-dispositivo__titulo { display:flex; align-items:center; gap:.5rem; color:#fbe396; font-weight:700; letter-spacing:.06em; }
+.barra-modo-dispositivo__acoes { display:flex; flex-wrap:wrap; gap:.5rem; }
+.barra-modo-dispositivo__acoes button { border:1px solid #4a3c1e; background:#221b10; color:#d4af37; border-radius:.5rem; padding:.6rem .9rem; cursor:pointer; font-family:inherit; font-size:.8rem; transition:.2s ease; }
+.barra-modo-dispositivo__acoes button:hover, .barra-modo-dispositivo__acoes button.ativo { border-color:#d4af37; color:#fff2bc; background:#4a3c1e; }
+.barra-modo-dispositivo__acoes .botao-sincronizar { background:rgba(212,175,55,.16); border-color:rgba(212,175,55,.4); }
+@media (max-width:760px) { .barra-modo-dispositivo { flex-direction:column; align-items:stretch; } .barra-modo-dispositivo__acoes { justify-content:center; } }

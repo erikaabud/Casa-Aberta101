@@ -1,0 +1,842 @@
+/* ===== PLAYER ENTRY - TEMA UMBRAETH ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap');
+
+.player-entry-container {
+  position: relative;
+  min-height: 100vh;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
+  background-image: 
+    radial-gradient(ellipse at 10% 20%, rgba(88, 0, 0, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 80%, rgba(44, 0, 88, 0.2) 0%, transparent 50%);
+}
+
+.particles-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+}
+
+.entry-card {
+  position: relative;
+  z-index: 1;
+  background: rgba(20, 15, 10, 0.95);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(74, 44, 26, 0.3);
+  border-radius: 4px;
+  padding: 3rem;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.9);
+  animation: slideUp 0.6s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(50px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.entry-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.entry-card::-webkit-scrollbar-track {
+  background: rgba(74, 44, 26, 0.05);
+  border-radius: 4px;
+}
+
+.entry-card::-webkit-scrollbar-thumb {
+  background: rgba(139, 90, 43, 0.3);
+  border-radius: 4px;
+}
+
+.entry-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 90, 43, 0.5);
+}
+
+.entry-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.entry-logo {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.entry-header h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #d4a574, #8b5a2b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 0.5rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 4px;
+}
+
+.entry-subtitle {
+  color: #8b8b7a;
+  font-size: 1rem;
+  font-family: 'MedievalSharp', cursive;
+}
+
+/* ===== PROGRESSO ===== */
+.entry-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+  gap: 0.5rem;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  opacity: 0.4;
+  transition: all 0.5s ease;
+}
+
+.progress-step.active {
+  opacity: 1;
+}
+
+.step-number {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(74, 44, 26, 0.2);
+  border: 1px solid rgba(74, 44, 26, 0.3);
+  color: #8b8b7a;
+  font-weight: 700;
+  transition: all 0.5s ease;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+}
+
+.progress-step.active .step-number {
+  background: linear-gradient(135deg, #4a2c1a, #2a1a0a);
+  border-color: #8b5a2b;
+  color: #d4a574;
+  box-shadow: 0 0 30px rgba(139, 90, 43, 0.2);
+}
+
+.step-label {
+  font-size: 0.6rem;
+  color: #8b8b7a;
+  font-weight: 600;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 2px;
+}
+
+.progress-step.active .step-label {
+  color: #d4a574;
+}
+
+.progress-line {
+  width: 50px;
+  height: 1px;
+  background: rgba(74, 44, 26, 0.2);
+  transition: all 0.5s ease;
+}
+
+.progress-line.active {
+  background: linear-gradient(90deg, #8b5a2b, #d4a574);
+}
+
+/* ===== CONTEÚDO ===== */
+.entry-content {
+  min-height: 350px;
+}
+
+.etapa-token,
+.etapa-login,
+.etapa-vaga,
+.etapa-personagem {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.etapa-icon {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.etapa-token h2,
+.etapa-login h2,
+.etapa-vaga h2,
+.etapa-personagem h2 {
+  text-align: center;
+  color: #d4c5a9;
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 2px;
+}
+
+.etapa-token p,
+.etapa-login p,
+.etapa-vaga p,
+.etapa-personagem p {
+  text-align: center;
+  color: #8b8b7a;
+  margin-bottom: 1.5rem;
+  font-family: 'MedievalSharp', cursive;
+}
+
+/* ===== ETAPA 1: TOKEN ===== */
+.input-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.input-token-grande {
+  flex: 1;
+  background: rgba(10, 10, 10, 0.6);
+  border: 1px solid rgba(74, 44, 26, 0.3);
+  border-radius: 4px;
+  padding: 1rem 1.5rem;
+  color: #d4c5a9;
+  font-size: 1.5rem;
+  font-family: 'Cinzel', monospace;
+  letter-spacing: 4px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.input-token-grande:focus {
+  outline: none;
+  border-color: #8b5a2b;
+  box-shadow: 0 0 30px rgba(139, 90, 43, 0.15);
+}
+
+.btn-buscar {
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #4a2c1a, #2a1a0a);
+  color: #d4c5a9;
+  border: 1px solid #8b5a2b;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 2px;
+}
+
+.btn-buscar:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6a3c2a, #3a2a1a);
+  border-color: #d4a574;
+  transform: scale(1.05);
+}
+
+.btn-buscar:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.dica-token {
+  background: rgba(74, 44, 26, 0.05);
+  border: 1px solid rgba(74, 44, 26, 0.1);
+  border-radius: 4px;
+  padding: 0.8rem;
+  color: #4a3c2a;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 1rem;
+  font-family: 'MedievalSharp', cursive;
+}
+
+/* ===== ETAPA 2: LOGIN ===== */
+.etapa-login {
+  animation: fadeIn 0.5s ease;
+}
+
+.form-login {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.campo-login {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.campo-login label {
+  color: #8b8b7a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+}
+
+.input-login {
+  background: rgba(10, 10, 10, 0.6);
+  border: 1px solid rgba(74, 44, 26, 0.3);
+  border-radius: 4px;
+  padding: 0.8rem 1.2rem;
+  color: #d4c5a9;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  font-family: 'Cinzel', serif;
+}
+
+.input-login:focus {
+  outline: none;
+  border-color: #8b5a2b;
+  box-shadow: 0 0 30px rgba(139, 90, 43, 0.1);
+}
+
+.input-login::placeholder {
+  color: #4a3c2a;
+  font-family: 'MedievalSharp', cursive;
+  font-size: 0.85rem;
+}
+
+.input-login:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-login {
+  padding: 1rem;
+  background: linear-gradient(135deg, #4a2c1a, #2a1a0a);
+  color: #d4c5a9;
+  border: 1px solid #8b5a2b;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.btn-login:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6a3c2a, #3a2a1a);
+  border-color: #d4a574;
+  box-shadow: 0 0 30px rgba(139, 90, 43, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-login:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-login .spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(212, 165, 116, 0.2);
+  border-top-color: #d4a574;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.jogador-logado {
+  text-align: center;
+  color: #8b8b7a;
+  font-size: 0.85rem;
+  font-family: 'MedievalSharp', cursive;
+  margin-bottom: 0.5rem;
+}
+
+.jogador-logado strong {
+  color: #d4a574;
+  font-family: 'Cinzel', serif;
+}
+
+.grupo-nome {
+  font-size: 1.1rem;
+  color: #d4a574 !important;
+  font-weight: 600;
+  font-family: 'Cinzel', serif !important;
+  text-align: center;
+}
+
+/* ===== ETAPA 3: VAGA ===== */
+.vagas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.vaga-card {
+  background: rgba(10, 10, 10, 0.5);
+  border: 1px solid rgba(74, 44, 26, 0.2);
+  border-radius: 4px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.vaga-card.disponivel:hover {
+  border-color: rgba(139, 90, 43, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.vaga-card.selecionado {
+  border-color: #8b5a2b;
+  background: rgba(139, 90, 43, 0.05);
+  box-shadow: 0 0 40px rgba(139, 90, 43, 0.05);
+}
+
+.vaga-card.ocupado {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.vaga-card.lider {
+  border-color: #d4a574;
+  background: rgba(212, 165, 116, 0.05);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.vaga-card.lider:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.vaga-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #d4c5a9;
+  margin-bottom: 0.3rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+}
+
+.vaga-icone {
+  font-size: 1.2rem;
+}
+
+.vaga-card-status {
+  font-size: 0.7rem;
+  font-family: 'MedievalSharp', cursive;
+}
+
+.status-disponivel {
+  color: #34d399;
+}
+
+.status-ocupado {
+  color: #f87171;
+}
+
+.status-lider {
+  color: #d4a574;
+  font-weight: 600;
+}
+
+.vaga-selecionada-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #8b5a2b;
+  color: #0a0a0a;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  animation: pulseBadge 1s ease infinite;
+}
+
+.vaga-bloqueada-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #8b5a2b;
+  color: #0a0a0a;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+}
+
+.badge-lider-vaga {
+  background: linear-gradient(135deg, #d4a574, #8b5a2b);
+  color: #0a0a0a;
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.5rem;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+}
+
+@keyframes pulseBadge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.vaga-info {
+  text-align: center;
+  color: #4a3c2a;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  font-family: 'MedievalSharp', cursive;
+}
+
+/* ===== ETAPA 4: PERSONAGEM ===== */
+.vaga-selecionada-info {
+  color: #d4a574 !important;
+  font-weight: 600;
+  font-family: 'Cinzel', serif !important;
+}
+
+.form-personagem {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.campo-personagem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.campo-personagem label {
+  color: #8b8b7a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+}
+
+.input-personagem {
+  background: rgba(10, 10, 10, 0.6);
+  border: 1px solid rgba(74, 44, 26, 0.3);
+  border-radius: 4px;
+  padding: 0.8rem 1.2rem;
+  color: #d4c5a9;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  font-family: 'Cinzel', serif;
+}
+
+.input-personagem:focus {
+  outline: none;
+  border-color: #8b5a2b;
+  box-shadow: 0 0 30px rgba(139, 90, 43, 0.1);
+}
+
+.classes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.classe-card {
+  background: rgba(10, 10, 10, 0.3);
+  border: 1px solid rgba(74, 44, 26, 0.2);
+  border-radius: 4px;
+  padding: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.classe-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(139, 90, 43, 0.3);
+}
+
+.classe-card.selecionada {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.classe-emoji {
+  font-size: 1.8rem;
+}
+
+.classe-nome {
+  font-weight: 600;
+  color: #d4c5a9;
+  font-size: 0.8rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+}
+
+.classe-descricao {
+  font-size: 0.6rem;
+  color: #6b5a4a;
+  text-align: center;
+  font-family: 'MedievalSharp', cursive;
+}
+
+.classe-atributos {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+  font-size: 0.6rem;
+  color: #4a3c2a;
+}
+
+.classe-atributos span {
+  background: rgba(74, 44, 26, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+}
+
+.btn-criar-personagem {
+  padding: 1rem;
+  background: linear-gradient(135deg, #1a3a2a, #0a2a1a);
+  color: #34d399;
+  border: 1px solid #34d399;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 2px;
+}
+
+.btn-criar-personagem:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 10px 40px rgba(52, 211, 153, 0.1);
+}
+
+.btn-criar-personagem:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ===== FOOTER ===== */
+.entry-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(74, 44, 26, 0.2);
+}
+
+.btn-voltar {
+  background: rgba(74, 44, 26, 0.1);
+  border: 1px solid rgba(74, 44, 26, 0.2);
+  color: #d4c5a9;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+  font-size: 0.7rem;
+}
+
+.btn-voltar:hover {
+  background: rgba(74, 44, 26, 0.2);
+  transform: translateX(-3px);
+}
+
+.entry-status {
+  color: #4a3c2a;
+  font-size: 0.7rem;
+  font-family: 'MedievalSharp', cursive;
+  letter-spacing: 2px;
+}
+
+/* ===== NOTIFICAÇÕES ===== */
+.notificacao {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-weight: 600;
+  z-index: 9999;
+  animation: slideIn 0.5s ease, fadeOut 0.5s 2.8s ease forwards;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  font-family: 'Cinzel', serif;
+}
+
+.notificacao.success {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.3);
+  color: #34d399;
+}
+
+.notificacao.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .entry-card {
+    padding: 1.5rem;
+    max-height: 95vh;
+  }
+
+  .entry-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .entry-logo {
+    font-size: 3rem;
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .input-token-grande {
+    font-size: 1.2rem;
+    padding: 0.8rem;
+  }
+
+  .btn-buscar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vagas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-line {
+    width: 30px;
+  }
+
+  .entry-footer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .entry-status {
+    text-align: center;
+  }
+  
+  .form-login {
+    gap: 1rem;
+  }
+  
+  .input-login {
+    font-size: 0.85rem;
+    padding: 0.7rem 1rem;
+  }
+  
+  .btn-login {
+    font-size: 0.8rem;
+    padding: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .entry-card {
+    padding: 1rem;
+  }
+
+  .entry-header h1 {
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+  }
+
+  .etapa-token h2,
+  .etapa-login h2,
+  .etapa-vaga h2,
+  .etapa-personagem h2 {
+    font-size: 1.2rem;
+  }
+
+  .input-token-grande {
+    font-size: 1rem;
+    padding: 0.6rem;
+    letter-spacing: 2px;
+  }
+
+  .btn-buscar {
+    padding: 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+
+  .step-label {
+    font-size: 0.5rem;
+  }
+
+  .progress-line {
+    width: 20px;
+  }
+}

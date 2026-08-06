@@ -1,0 +1,11 @@
+.visualizacao-inventario { padding:1rem; }
+.visualizacao-inventario h2 { color:#d4af37; margin-bottom:1rem; font-size:1rem; letter-spacing:.08em; text-transform:uppercase; }
+.visualizacao-inventario__lista { display:grid; gap:.8rem; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+.visualizacao-inventario__card { position:relative; border:1px solid var(--cor-raridade); background:linear-gradient(135deg,rgba(16,24,40,.95),rgba(9,14,24,.98)); border-radius:.85rem; padding:1rem; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.5); }
+.visualizacao-inventario__topo { display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem; }
+.visualizacao-inventario__topo h3 { margin:0; color:#f8fafc; font-size:.95rem; }
+.visualizacao-inventario__topo span { display:inline-flex; margin-top:.2rem; font-size:.72rem; text-transform:uppercase; color:var(--cor-raridade); }
+.visualizacao-inventario__icone { width:2.5rem; height:2.5rem; border-radius:.75rem; display:grid; place-items:center; background:var(--fundo-raridade); border:1px solid var(--cor-raridade); }
+.visualizacao-inventario__card strong { color:#fbe396; display:block; margin-bottom:.4rem; }
+.visualizacao-inventario__card p { margin:0; color:#cbd5e1; line-height:1.5; }
+.visualizacao-inventario__tag { position:absolute; top:.8rem; right:.8rem; background:rgba(212,175,55,.16); color:#fff2bc; border:1px solid #d4af37; border-radius:999px; font-size:.65rem; padding:.2rem .45rem; text-transform:uppercase; letter-spacing:.05em; }

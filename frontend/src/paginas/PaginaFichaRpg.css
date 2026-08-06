@@ -1,0 +1,5 @@
+.pagina-ficha-rpg { min-height:100vh; background:#030712; color:#f7fafc; background-image:radial-gradient(circle at 50% 0%, rgba(212,175,55,.08) 0%, transparent 60%), radial-gradient(circle at 10% 90%, rgba(15,23,42,.8) 0%, transparent 50%); }
+.pagina-ficha-rpg__conteudo { padding:1.5rem; }
+.pagina-ficha-rpg__mensagem { margin:1rem auto 0; width:min(1100px, calc(100% - 2rem)); padding:.85rem 1rem; border-radius:.75rem; background:rgba(212,175,55,.14); border:1px solid rgba(212,175,55,.3); color:#fff2bc; }
+.pagina-ficha-rpg__somente-desktop { display:none; }
+@media (min-width:1024px) { .pagina-ficha-rpg__somente-mobile { display:none; } .pagina-ficha-rpg__somente-desktop { display:block; } }

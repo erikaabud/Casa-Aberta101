@@ -1,0 +1,15 @@
+.secao-missoes { padding:1rem; }
+.secao-missoes h2 { color:#d4af37; margin-bottom:1rem; font-size:1rem; letter-spacing:.08em; text-transform:uppercase; }
+.secao-missoes__lista { display:flex; flex-direction:column; gap:.7rem; }
+.secao-missoes__card { display:flex; align-items:center; justify-content:space-between; gap:.75rem; border:1px solid rgba(212,175,55,.25); border-radius:.85rem; padding:.95rem 1rem; background:rgba(10,15,26,.95); cursor:pointer; }
+.secao-missoes__esquerda { display:flex; align-items:center; gap:.75rem; }
+.secao-missoes__card h3, .secao-missoes__modal h3 { margin:0; color:#f8fafc; }
+.secao-missoes__card p, .secao-missoes__modal p { margin:0; color:#cbd5e1; line-height:1.5; }
+.secao-missoes__modal-fundo { position:fixed; inset:0; background:rgba(3,7,18,.85); display:grid; place-items:center; padding:1rem; z-index:50; }
+.secao-missoes__modal { position:relative; width:min(32rem,100%); background:#0b1220; border:1px solid #d4af37; border-radius:1rem; padding:1.5rem; display:flex; flex-direction:column; gap:.9rem; }
+.secao-missoes__modal small { color:#d4af37; }
+.secao-missoes__recompensas { display:flex; gap:.8rem; flex-wrap:wrap; }
+.secao-missoes__recompensas span { background:rgba(212,175,55,.12); color:#fff2bc; border:1px solid rgba(212,175,55,.3); border-radius:.5rem; padding:.45rem .65rem; }
+.secao-missoes__concluir, .secao-missoes__fechar { cursor:pointer; }
+.secao-missoes__concluir { border:0; background:linear-gradient(135deg,#d4af37,#8a6711); color:#070b12; border-radius:.7rem; padding:.85rem 1rem; font-weight:700; }
+.secao-missoes__fechar { position:absolute; top:.75rem; right:.75rem; border:0; background:transparent; color:#cbd5e1; }

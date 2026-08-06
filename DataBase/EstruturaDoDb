@@ -1,0 +1,95 @@
+CREATE DATABASE rpg;
+USE rpg;
+
+-- Herois / Personagens
+CREATE TABLE usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nome_usuario VARCHAR(100) NOT NULL UNIQUE,
+	senha_usuario VARCHAR(255) NOT NULL
+);
+
+-- Criar equipe SEM a chave estrangeira do líder primeiro
+CREATE TABLE equipe (
+    id_equipe INT AUTO_INCREMENT PRIMARY KEY,
+    nome_equipe VARCHAR(50) NOT NULL,
+    codigo CHAR(6) NOT NULL UNIQUE,
+    pontuacao INT DEFAULT 0,
+    status ENUM('Jogando', 'Finalizada', 'Incompleta') DEFAULT 'Jogando',
+    id_lider INT NULL  -- Nova coluna para armazenar o líder
+);
+
+CREATE TABLE classe (
+    id_classe INT AUTO_INCREMENT PRIMARY KEY,
+    nome_classe VARCHAR(50) NOT NULL UNIQUE,
+    habilidade VARCHAR(100) NOT NULL,
+    descricao_classe TEXT NOT NULL
+);
+
+-- Tabela equipe_usuario SEM a coluna lider (agora gerenciado pela equipe)
+CREATE TABLE equipe_usuario (
+    id_equipe INT NOT NULL,
+    id_usuario INT NOT NULL,
+    id_classe INT NOT NULL,
+    PRIMARY KEY (id_equipe, id_usuario),
+    FOREIGN KEY (id_equipe) REFERENCES equipe(id_equipe) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_classe) REFERENCES classe(id_classe) ON DELETE CASCADE
+);
+
+-- Inventário
+CREATE TABLE item (
+    id_item INT AUTO_INCREMENT PRIMARY KEY,
+    nome_item VARCHAR(60) NOT NULL UNIQUE,
+    descricao_item TEXT NOT NULL
+);
+
+CREATE TABLE equipe_item (
+    id_equipe INT NOT NULL,
+    id_item INT NOT NULL,
+    estado_item ENUM('Normal', 'Amaldiçoado') NOT NULL DEFAULT 'Normal',
+    quantidade INT DEFAULT 1,
+    PRIMARY KEY (id_equipe, id_item),
+    FOREIGN KEY (id_equipe) REFERENCES equipe(id_equipe) ON DELETE CASCADE,
+    FOREIGN KEY (id_item) REFERENCES item(id_item) ON DELETE CASCADE
+);
+
+-- Mundo
+CREATE TABLE regiao (
+    id_regiao INT AUTO_INCREMENT PRIMARY KEY,
+    nome_regiao VARCHAR(100) NOT NULL UNIQUE,
+    descricao_regiao TEXT NOT NULL
+);
+
+CREATE TABLE lugar (
+    id_lugar INT AUTO_INCREMENT PRIMARY KEY,
+    nome_lugar VARCHAR(100) NOT NULL,
+    id_regiao INT NOT NULL,
+    descricao_lugar TEXT NOT NULL,
+    FOREIGN KEY (id_regiao) REFERENCES regiao(id_regiao) ON DELETE CASCADE
+);
+
+CREATE TABLE npc (
+    id_npc INT AUTO_INCREMENT PRIMARY KEY,
+    nome_npc VARCHAR(40) NOT NULL,
+    tipo_npc ENUM('Guia', 'Inimigo') NOT NULL,
+    descricao_npc TEXT NOT NULL,
+    id_regiao INT NULL,
+    id_lugar INT NULL,
+    FOREIGN KEY (id_regiao) REFERENCES regiao(id_regiao) ON DELETE SET NULL,
+    FOREIGN KEY (id_lugar) REFERENCES lugar(id_lugar) ON DELETE SET NULL
+);
+
+CREATE TABLE dialogo (
+    id_dialogo INT AUTO_INCREMENT PRIMARY KEY,
+    id_npc INT NOT NULL,
+    ordem_dialogo TINYINT NOT NULL,
+    texto_dialogo TEXT NOT NULL,
+    FOREIGN KEY (id_npc) REFERENCES npc(id_npc) ON DELETE CASCADE,
+    UNIQUE(id_npc, ordem_dialogo)
+);
+
+-- Adicionar a chave estrangeira composta para garantir que o líder pertence à equipe
+ALTER TABLE equipe
+ADD CONSTRAINT fk_lider_equipe
+FOREIGN KEY (id_equipe, id_lider)
+REFERENCES equipe_usuario(id_equipe, id_usuario);

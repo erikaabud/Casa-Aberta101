@@ -1,0 +1,267 @@
+CREATE PROCEDURE criar_equipe(
+    IN p_nome_equipe VARCHAR(50),
+    IN p_codigo CHAR(6),
+    IN p_id_usuario INT
+)
+BEGIN
+    DECLARE v_id_equipe INT;
+
+    -- Cria a equipe
+    INSERT INTO equipe (nome_equipe, codigo)
+    VALUES (p_nome_equipe, p_codigo);
+
+    -- Obtém o ID da equipe criada
+    SET v_id_equipe = LAST_INSERT_ID();
+
+    -- Adiciona o criador na equipe
+    INSERT INTO equipe_usuario (id_equipe, id_usuario, id_classe)
+    VALUES (v_id_equipe, p_id_usuario, NULL);
+
+    -- Define o criador como líder
+    UPDATE equipe
+    SET id_lider = p_id_usuario
+    WHERE id_equipe = v_id_equipe;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE criar_equipe(
+    IN p_nome_equipe VARCHAR(50),
+    IN p_codigo CHAR(6),
+    IN p_id_usuario INT,
+    IN p_id_classe INT
+)
+BEGIN
+    DECLARE v_id_equipe INT;
+    DECLARE v_usuario_existe INT;
+    DECLARE v_classe_existe INT;
+    DECLARE v_codigo_existe INT;
+    DECLARE v_ja_tem_equipe INT;
+
+    -- Handler para erros
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    -- ==========================================
+    -- 1. VALIDAÇÕES DE CAMPOS OBRIGATÓRIOS
+    -- ==========================================
+    
+    -- Nome da equipe não pode ser vazio
+    IF TRIM(p_nome_equipe) = '' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'O nome da equipe é obrigatório!';
+    END IF;
+
+    -- Nome da equipe deve ter pelo menos 3 caracteres
+    IF LENGTH(TRIM(p_nome_equipe)) < 3 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'O nome da equipe deve ter pelo menos 3 caracteres!';
+    END IF;
+
+    -- Código não pode ser vazio
+    IF TRIM(p_codigo) = '' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'O código da equipe é obrigatório!';
+    END IF;
+
+    -- Código deve ter exatamente 6 caracteres
+    IF LENGTH(TRIM(p_codigo)) != 6 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'O código da equipe deve ter exatamente 6 caracteres!';
+    END IF;
+
+    -- ==========================================
+    -- 2. VALIDAÇÕES DE EXISTÊNCIA
+    -- ==========================================
+
+    -- Usuário existe?
+    SELECT COUNT(*) INTO v_usuario_existe 
+    FROM usuario 
+    WHERE id_usuario = p_id_usuario;
+    
+    IF v_usuario_existe = 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Usuário não encontrado!';
+    END IF;
+
+    -- Classe existe?
+    SELECT COUNT(*) INTO v_classe_existe 
+    FROM classe 
+    WHERE id_classe = p_id_classe;
+    
+    IF v_classe_existe = 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Classe não encontrada!';
+    END IF;
+
+    -- ==========================================
+    -- 3. VALIDAÇÕES DE REGRA DE NEGÓCIO
+    -- ==========================================
+
+    -- Código da equipe já existe?
+    SELECT COUNT(*) INTO v_codigo_existe 
+    FROM equipe 
+    WHERE codigo = UPPER(TRIM(p_codigo));
+    
+    IF v_codigo_existe > 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Código da equipe já está em uso!';
+    END IF;
+
+    -- Usuário já está em uma equipe?
+    SELECT COUNT(*) INTO v_ja_tem_equipe 
+    FROM equipe_usuario 
+    WHERE id_usuario = p_id_usuario;
+    
+    IF v_ja_tem_equipe > 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Usuário já pertence a uma equipe!';
+    END IF;
+
+    -- ==========================================
+    -- 4. CRIAÇÃO DA EQUIPE
+    -- ==========================================
+
+    -- Cria a equipe (normalizando os dados)
+    INSERT INTO equipe (nome_equipe, codigo)
+    VALUES (TRIM(p_nome_equipe), UPPER(TRIM(p_codigo)));
+
+    SET v_id_equipe = LAST_INSERT_ID();
+
+    -- Adiciona o criador na equipe
+    INSERT INTO equipe_usuario (id_equipe, id_usuario, id_classe)
+    VALUES (v_id_equipe, p_id_usuario, p_id_classe);
+
+    -- Define o criador como líder
+    UPDATE equipe
+    SET id_lider = p_id_usuario
+    WHERE id_equipe = v_id_equipe;
+
+    COMMIT;
+
+    -- Retorna o ID da equipe criada
+    SELECT v_id_equipe AS id_equipe_criada;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE entrar_equipe(
+    IN p_codigo CHAR(6),
+    IN p_id_usuario INT,
+    IN p_id_classe INT
+)
+BEGIN
+    DECLARE v_id_equipe INT;
+    DECLARE v_usuario_existe INT;
+    DECLARE v_classe_existe INT;
+    DECLARE v_equipe_existe INT;
+    DECLARE v_membro_ja_existe INT;
+    DECLARE v_ja_tem_equipe INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    -- ==========================================
+    -- 1. VALIDAÇÕES DE CAMPOS OBRIGATÓRIOS
+    -- ==========================================
+
+    -- Código não pode ser vazio
+    IF TRIM(p_codigo) = '' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'O código da equipe é obrigatório!';
+    END IF;
+
+    -- Código deve ter exatamente 6 caracteres
+    IF LENGTH(TRIM(p_codigo)) != 6 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'O código da equipe deve ter exatamente 6 caracteres!';
+    END IF;
+
+    -- ==========================================
+    -- 2. VALIDAÇÕES DE EXISTÊNCIA
+    -- ==========================================
+
+    -- Usuário existe?
+    SELECT COUNT(*) INTO v_usuario_existe 
+    FROM usuario 
+    WHERE id_usuario = p_id_usuario;
+    
+    IF v_usuario_existe = 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Usuário não encontrado!';
+    END IF;
+
+    -- Classe existe?
+    SELECT COUNT(*) INTO v_classe_existe 
+    FROM classe 
+    WHERE id_classe = p_id_classe;
+    
+    IF v_classe_existe = 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Classe não encontrada!';
+    END IF;
+
+    -- ==========================================
+    -- 3. VALIDAÇÕES DE REGRA DE NEGÓCIO
+    -- ==========================================
+
+    -- Usuário já está em uma equipe?
+    SELECT COUNT(*) INTO v_ja_tem_equipe 
+    FROM equipe_usuario 
+    WHERE id_usuario = p_id_usuario;
+    
+    IF v_ja_tem_equipe > 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Usuário já pertence a uma equipe!';
+    END IF;
+
+    -- Equipe existe e está ativa?
+    SELECT id_equipe INTO v_id_equipe 
+    FROM equipe 
+    WHERE codigo = UPPER(TRIM(p_codigo)) 
+    AND status = 'Jogando';
+    
+    IF v_id_equipe IS NULL THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Equipe não encontrada ou não está ativa!';
+    END IF;
+
+    -- Usuário já está na equipe?
+    SELECT COUNT(*) INTO v_membro_ja_existe 
+    FROM equipe_usuario 
+    WHERE id_equipe = v_id_equipe 
+    AND id_usuario = p_id_usuario;
+    
+    IF v_membro_ja_existe > 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Usuário já está nesta equipe!';
+    END IF;
+
+    -- ==========================================
+    -- 4. ADICIONAR À EQUIPE
+    -- ==========================================
+
+    -- Adiciona o usuário à equipe
+    INSERT INTO equipe_usuario (id_equipe, id_usuario, id_classe)
+    VALUES (v_id_equipe, p_id_usuario, p_id_classe);
+
+    COMMIT;
+
+    SELECT v_id_equipe AS id_equipe_entrada;
+END //
+
+DELIMITER ;
