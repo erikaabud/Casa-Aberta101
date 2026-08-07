@@ -15,7 +15,8 @@ import balys from "../assets/balys.jpg";
 import gabriel from "../assets/gabriel.jpg";
 import luciano from "../assets/luciano.png";
 import juca from "../assets/juca.jpg";
-import vitor from "../assets/vitor.jpg";
+import vittor from "../assets/vittor.png";
+import santana from "../assets/santana.png";
 
 const Desenvolvedores = () => {
   const [membroSelecionado, setMembroSelecionado] = useState(null);
@@ -129,21 +130,21 @@ const Desenvolvedores = () => {
       idade: 18,
       cidade: 'São Paulo',
       habilidades: ['Criatividade', 'Trabalho Manual', 'Montagem Manual'],
-      bio: '',
+      bio: 'Meu nome é Luciano Bernardes Filho e estudo Tecnologia da Informação no Senac Santana. Sou uma pessoa bastante extrovertida, comunicativa e gosto muito de ajudar os outros. No meu tempo livre, gosto de praticar e acompanhar esportes, jogar e assistir a séries. Sou adventista do sétimo dia e participo ativamente da minha igreja, frequentando os cultos aos sábados. Também sou vice-diretor do Clube de Desbravadores Shemá, onde gosto de colaborar com as atividades, ajudar os membros do clube e contribuir para o desenvolvimento dos jovens.',
       redes: { github: 'Lucianobfilho', linkedin: '', instagram: '' },
-      curiosidade: '.'
+      curiosidade: 'Eu gosto de acampar, nós e amarras e sei montar cubo mágico em menos de 30 segundos'
     },
     {
       id: 8,
       nome: 'Paulo Santana',
       funcao: 'ROTEIRISTA',
-      emoji: '🚀',
+      imagem:santana,
       idade: 22,
       cidade: 'São Paulo',
       habilidades: ['Craitividade', 'Narrativa', 'Criação de Missões'],
-      bio: '',
-      redes: { github: '', linkedin: '', instagram: '' },
-      curiosidade: ''
+      bio: 'Paulo Vitor, 22 anos, estudante de TI no Senac, certificado em Cybersegurança, Python, Hardware e Software - Cisco, certificado de Montagem e Manutenção, Assistente de Operação de Redes de Computadores - Senac, Conhecimento em programação, HTML, Python, JS.',
+      redes: { github: '', linkedin: '', instagram: 'maffu011' },
+      curiosidade: 'Eu tenho ótima memória pra rostos e lugares'
     },
     {
       id: 9,
@@ -161,7 +162,7 @@ const Desenvolvedores = () => {
       id: 10,
       nome: 'Vitor Hugo',
       funcao: 'FRONT-END',
-      imagem: vitor,
+      imagem: vittor,
       idade: 19,
       cidade: 'São Paulo',
       habilidades: ['Manutenção de Computadores', 'Programação', 'Redes de Computadores'],
