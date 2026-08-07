@@ -44,6 +44,11 @@ const PaginaSobre = () => {
                 Equipe
               </button>
             </li>
+            <li>
+              <button className="nav-btn" onClick={() => navegar('/desenvolvedores')}>
+              Desenvolvedores
+              </button>
+            </li>
           </ul>
         </div>
       </nav>

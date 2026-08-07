@@ -81,9 +81,9 @@ const Desenvolvedores = () => {
       idade: 17,
       cidade: 'São Paulo',
       habilidades: [ 'Gestão de Projetos', 'Comunicação', 'JavaScript'],
-      bio: 'Erika é a líder da equipe, responsável por garantir que o projeto atenda às necessidades dos usuários e entregue valor real.',
+      bio: 'Sou Erika Abud, estudante do Técnico em Informática no Senac e do Técnico em Desenvolvimento de Sistemas, integrado ao Ensino Médio. Sou apaixonada por tecnologia e desenvolvimento de software, com conhecimentos em JavaScript, React, Node.js e bancos de dados. Estou sempre em busca de aprender, evoluir e enfrentar novos desafios. Meu objetivo é crescer como desenvolvedora e criar soluções inovadoras que façam a diferença.',
       redes: { github: 'erikaabud', linkedin: 'erika-abud-b8a459307', instagram: 'erikaabud_' },
-      curiosidade: ''
+      curiosidade: 'Além da tecnologia, falo inglês e espanhol e sou faixa marrom de judô, experiências que fortaleceram minha disciplina, comunicação e dedicação.'
     },
     {
       id: 4,
@@ -136,7 +136,7 @@ const Desenvolvedores = () => {
     {
       id: 8,
       nome: 'Paulo Santana',
-      funcao: 'ROTERISTA',
+      funcao: 'ROTEIRISTA',
       emoji: '🚀',
       idade: 22,
       cidade: 'São Paulo',
