@@ -32,6 +32,9 @@ export default function App() {
           </RotaProtegida>
         }
       />
+
+      {/* <Route path="/ficha-rpg" element={<PaginaFichaRpg />} /> */}
+
       <Route path="/jogar" element={<Navigate to="/ficha-rpg" replace />} />
 
       <Route path="/inventory" element={<Navigate to="/inventario" replace />} />

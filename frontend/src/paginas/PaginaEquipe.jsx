@@ -10,7 +10,7 @@ export default function PaginaEquipe() {
 
   const [aba, setAba] = useState('criar');
   const [nomeEquipe, setNomeEquipe] = useState('');
-  const [codigoEquipe, setCodigoEquipe] = useState('');
+  const [codigoEquipe, setCodigoEquipe] = useState('A143CB');
   const [idClasse, setIdClasse] = useState('');
   const [classes, setClasses] = useState([]);
   const [carregando, setCarregando] = useState(false);
