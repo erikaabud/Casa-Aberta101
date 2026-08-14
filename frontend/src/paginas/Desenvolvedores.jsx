@@ -17,6 +17,7 @@ import luciano from "../assets/luciano.png";
 import juca from "../assets/juca.jpg";
 import vittor from "../assets/vittor.png";
 import santana from "../assets/santana.png";
+import dennys from "../assets/dennys.png";
 
 const Desenvolvedores = () => {
   const [membroSelecionado, setMembroSelecionado] = useState(null);
@@ -169,6 +170,30 @@ const Desenvolvedores = () => {
       bio: 'Estudante de Tecnologia da Informação, apaixonado por programação, infraestrutura de redes e desenvolvimento de sistemas. Atualmente cursando Técnico em Informática e buscando oportunidades para adquirir experiência prática e evoluir profissionalmente na área de TI.',
       redes: { github: 'vitinho13y7', linkedin: '', instagram: 'vitinho132y7' },
       curiosidade: 'Gosto de entender como tudo funciona por trás da tecnologia, desde linhas de código até a configuração de servidores e redes.'
+    },
+    {
+      id:11,
+      nome: 'Dennys WENDEL',
+      funcao: 'GESTOR DE FRONT-END',
+      imagem: dennys,
+      idade: 39,
+      cidade: 'São Paulo',
+      habilidades: ['FRONT-END'],
+      bio: '',
+      redes: { github: '', linkedin: '', instagram: '' },
+      curiosidade: ' '
+    },
+    {
+      id:12,
+      nome: 'ROGERIO SOBRAL',
+      funcao: 'GESTOR DE BACK-END',
+      emoji: '💻',
+      idade:39,
+      cidade: 'São Paulo',
+      habilidades: ['SQL', 'Modelagem de Dados', 'Análise de Dados'],
+      bio: '',
+      redes: { github: '', linkedin: '', instagram: '' },
+      curiosidade: ' '
     }
   ];
 
