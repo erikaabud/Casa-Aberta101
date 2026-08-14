@@ -1,5 +1,5 @@
 import { apiRealAtivada, requisitarJson } from './clienteApi';
-import { personagemInicial } from '../dados/personagemInicial';
+import { personagensPreDefinidos } from '../dados/personagemInicial'; 
 
 const CHAVE_PERSONAGEM = 'umbraeth_personagem';
 

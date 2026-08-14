@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { personagemInicial } from '../dados/personagemInicial';
+// CORREÇÃO 1: Importe a lista de classes pré-definidas, e não o personagem inicial único
+import { personagensPreDefinidos } from '../dados/personagemInicial'; 
 import { BarraModoDispositivo } from '../componentes/ficha-rpg/BarraModoDispositivo';
 import { VisualizacaoDesktop } from '../componentes/ficha-rpg/VisualizacaoDesktop';
 import { VisualizacaoMobile } from '../componentes/ficha-rpg/VisualizacaoMobile';
@@ -7,8 +8,11 @@ import { ModalQr } from '../componentes/ficha-rpg/ModalQr';
 import { carregarPersonagem, salvarPersonagem, sincronizarPersonagem } from '../servicos/personagemServico';
 import './PaginaFichaRpg.css';
 
+
 export default function PaginaFichaRpg() {
-  const [personagem, setPersonagem] = useState(() => carregarPersonagem() || personagemInicial);
+  // CORREÇÃO 2: O estado inicial tenta carregar do banco, se não tiver, pega o Guerreiro padrão
+  const [personagem, setPersonagem] = useState(() => carregarPersonagem() || personagensPreDefinidos.Guerreiro);
+
   const [modoDispositivo, setModoDispositivo] = useState('auto');
   const [abaAtiva, setAbaAtiva] = useState('poderes');
   const [mostrarModalQr, setMostrarModalQr] = useState(false);
@@ -21,20 +25,19 @@ export default function PaginaFichaRpg() {
     const bonusItens = personagem.inventario.filter((item) => item.equipado).reduce((acumulador, item) => acumulador + (item.raridade === 'lendario' ? 100 : item.raridade === 'epico' ? 70 : 40), 0);
     return Math.round(personagem.atributos.forca * 10 + personagem.atributos.defesa * 8 + personagem.atributos.vidaMaxima / 4 + personagem.atributos.manaMaxima / 4 + personagem.nivel * 80 + bonusItens);
   }, [personagem]);
-
+  
   function atualizarNome(novoNome) { setPersonagem((personagemAtual) => ({ ...personagemAtual, nome: novoNome })); }
 
+  // CORREÇÃO 3: A função que realmente troca a classe e os poderes!
   function atualizarClasse(novaClasse) {
-    setPersonagem((personagemAtual) => ({
-      ...personagemAtual,
-      classe: novaClasse,
-      atributos: {
-        ...personagemAtual.atributos,
-        forca: novaClasse === 'Guerreiro' ? personagemAtual.atributos.forca + 2 : personagemAtual.atributos.forca,
-        defesa: novaClasse === 'Paladino' ? personagemAtual.atributos.defesa + 2 : personagemAtual.atributos.defesa,
-        manaMaxima: ['Mago', 'Necromante'].includes(novaClasse) ? personagemAtual.atributos.manaMaxima + 40 : personagemAtual.atributos.manaMaxima,
-      },
-    }));
+    // Pega o template completo da classe escolhida (que tem as habilidades certas)
+    const novoPersonagemTemplate = personagensPreDefinidos[novaClasse];
+    
+    if (novoPersonagemTemplate) {
+      // Substitui o personagem inteiro pelo novo template.
+      // Isso garante que nome, classe, atributos e principalmente as HABILIDADES sejam trocadas.
+      setPersonagem(novoPersonagemTemplate);
+    }
   }
 
   function ganharExperiencia() {
