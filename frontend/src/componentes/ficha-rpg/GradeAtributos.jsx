@@ -19,10 +19,6 @@ export function GradeAtributos({ atributos, aoAtualizarAtributo }) {
               <span className="grade-atributos__titulo">{item.titulo}</span>
               <strong>{valor}</strong>
             </div>
-            <div className="grade-atributos__acoes">
-              <button type="button" onClick={() => aoAtualizarAtributo(item.chave, item.passo)}>+</button>
-              <button type="button" onClick={() => aoAtualizarAtributo(item.chave, -item.passo)}>-</button>
-            </div>
           </div>
         );
       })}

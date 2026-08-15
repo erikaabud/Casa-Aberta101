@@ -1,12 +1,12 @@
 import './VisualizacaoPoderes.css';
 
 function iconePorTipo(icone) {
-  if (icone === 'adaga') return '🗡️';
   if (icone === 'chave') return '🗝️';
   if (icone === 'cruz') return '✟';
   if (icone === 'espada') return '⚔️';
   if (icone === 'escudo') return '🛡️';
   if (icone === 'faísca') return '⚡';
+  if (icone === 'vela') return '🕯️';
   return '✨';
 }
 

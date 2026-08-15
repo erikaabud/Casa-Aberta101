@@ -18,7 +18,7 @@ export function VisualizacaoDesktop({ personagem, poderTotal, abaAtiva, aoSeleci
     <section className="visualizacao-desktop">
       <aside className="visualizacao-desktop__lateral">
         <CabecalhoFicha nome={personagem.nome} classePersonagem={personagem.classe} aoAtualizarNome={aoAtualizarNome} aoAtualizarClasse={aoAtualizarClasse} />
-        <GradeAtributos atributos={personagem.atributos} aoAtualizarAtributo={aoAtualizarAtributo} />
+        <GradeAtributos atributos={personagem.atributos} />
       </aside>
       <main className="visualizacao-desktop__conteudo">
         <div className="visualizacao-desktop__abas">

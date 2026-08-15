@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { IconeEscudoPaladino } from './EmblemasMedievais';
 import './CabecalhoFicha.css';
 
-const classesDisponiveis = ['Clerigo','Guerreiro', 'Ladino', 'Mago'];
+const classesDisponiveis = ['Clérigo','Guerreiro', 'Ladino', 'Mago'];
 
 export function CabecalhoFicha({ nome, classePersonagem, aoAtualizarNome, aoAtualizarClasse }) {
   const [estaEditandoNome, setEstaEditandoNome] = useState(false);
