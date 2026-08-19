@@ -18,6 +18,8 @@ import juca from "../assets/juca.jpg";
 import vittor from "../assets/vittor.png";
 import santana from "../assets/santana.png";
 import dennys from "../assets/dennys.png";
+import vicente from "../assets/vicente.jpg";
+import rogerio from "../assets/rogerio.png";
 
 const Desenvolvedores = () => {
   const [membroSelecionado, setMembroSelecionado] = useState(null);
@@ -151,7 +153,7 @@ const Desenvolvedores = () => {
       id: 9,
       nome: 'Paulo Vicenty',
       funcao: 'BANCO DE DADOS',
-      emoji: '💻',
+      imagem:vicente,
       idade: 21,
       cidade: 'São Paulo',
       habilidades: ['SQL', 'Modelagem de Dados', 'Análise de Dados'],
@@ -178,7 +180,7 @@ const Desenvolvedores = () => {
       imagem: dennys,
       idade: 39,
       cidade: 'São Paulo',
-      habilidades: ['FRONT-END'],
+      habilidades: ['PROFESSOR'],
       bio: '',
       redes: { github: '', linkedin: '', instagram: '' },
       curiosidade: ' '
@@ -187,10 +189,10 @@ const Desenvolvedores = () => {
       id:12,
       nome: 'ROGERIO SOBRAL',
       funcao: 'GESTOR DE BACK-END',
-      emoji: '💻',
+      imagem:rogerio,
       idade:39,
       cidade: 'São Paulo',
-      habilidades: ['SQL', 'Modelagem de Dados', 'Análise de Dados'],
+      habilidades: ['PROFESSOR', ],
       bio: '',
       redes: { github: '', linkedin: '', instagram: '' },
       curiosidade: ' '
