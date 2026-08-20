@@ -13,20 +13,25 @@ const abas = [
   { id: 'qrcode', rotulo: 'QR Code' },
 ];
 
-export function VisualizacaoDesktop({ 
-  personagem, 
-  dadosTerritorio, // <--- ADICIONADO AQUI
-  poderTotal, 
-  abaAtiva, 
-  aoSelecionarAba, 
-  aoAtualizarNome, 
-  aoAtualizarClasse, 
-  aoGanharExperiencia, 
-  aoAtualizarAtributo, 
-  aoConcluirMissao, 
-  aoAlternarEquipamento, 
-  aoAbrirModalQr, 
-  aoResgatarQr 
+export function VisualizacaoDesktop({
+  personagem,
+  dadosTerritorio,
+  poderes,
+  mpAtual,
+  chaveDeCeraUsada,
+  carregandoPoderes,
+  aoUsarPoder, // <--- ADICIONADO AQUI
+  poderTotal,
+  abaAtiva,
+  aoSelecionarAba,
+  aoAtualizarNome,
+  aoAtualizarClasse,
+  aoGanharExperiencia,
+  aoAtualizarAtributo,
+  aoConcluirMissao,
+  aoAlternarEquipamento,
+  aoAbrirModalQr,
+  aoResgatarQr
 }) {
   return (
     <section className="visualizacao-desktop">
@@ -34,42 +39,51 @@ export function VisualizacaoDesktop({
         <CabecalhoFicha nome={personagem.nome} classePersonagem={personagem.classe} aoAtualizarNome={aoAtualizarNome} aoAtualizarClasse={aoAtualizarClasse} />
         <GradeAtributos atributos={personagem.atributos} aoAtualizarAtributo={aoAtualizarAtributo} />
       </aside>
-      
+
       <main className="visualizacao-desktop__conteudo">
         <div className="visualizacao-desktop__abas">
           {abas.map((aba) => (
             <button type="button" key={aba.id} className={abaAtiva === aba.id ? 'ativo' : ''} onClick={() => aoSelecionarAba(aba.id)}>{aba.rotulo}</button>
           ))}
         </div>
-        
+
         <div className="visualizacao-desktop__corpo">
           {/* --- TROCA DE DADOS PARA O TERRITÓRIO --- */}
-          
+
           {abaAtiva === 'poderes' && (
-            <VisualizacaoPoderes habilidades={dadosTerritorio.poderes} />
+            carregandoPoderes ? (
+              <p>Carregando poderes...</p>
+            ) : (
+              <VisualizacaoPoderes
+                habilidades={poderes}
+                mpAtual={mpAtual}
+                chaveDeCeraUsada={chaveDeCeraUsada}
+                aoUsarPoder={aoUsarPoder}
+              />
+            )
           )}
-          
+
           {abaAtiva === 'inventario' && (
-            <VisualizacaoInventario 
-              inventario={dadosTerritorio.inventario} 
-              aoAlternarEquipamento={aoAlternarEquipamento} 
+            <VisualizacaoInventario
+              inventario={dadosTerritorio.inventario}
+              aoAlternarEquipamento={aoAlternarEquipamento}
             />
           )}
-          
+
           {abaAtiva === 'missoes' && (
-            <SecaoMissoes 
-              missoes={dadosTerritorio.missoes} 
-              aoConcluirMissao={aoConcluirMissao} 
+            <SecaoMissoes
+              missoes={dadosTerritorio.missoes}
+              aoConcluirMissao={aoConcluirMissao}
             />
           )}
-          
+
           {abaAtiva === 'qrcode' && (
-            <LeitorQr 
-              personagem={personagem} 
-              poderTotal={poderTotal} 
-              aoGanharExperiencia={aoGanharExperiencia} 
-              aoResgatarQr={aoResgatarQr} 
-              aoAbrirModalQr={aoAbrirModalQr} 
+            <LeitorQr
+              personagem={personagem}
+              poderTotal={poderTotal}
+              aoGanharExperiencia={aoGanharExperiencia}
+              aoResgatarQr={aoResgatarQr}
+              aoAbrirModalQr={aoAbrirModalQr}
             />
           )}
         </div>
