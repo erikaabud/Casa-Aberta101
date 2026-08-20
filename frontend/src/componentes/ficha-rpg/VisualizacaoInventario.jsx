@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './VisualizacaoInventario.css';
+import { requisitarJson } from '../../servicos/clienteApi';
 
 const TOTAL_SLOTS = 6;
 
@@ -8,22 +9,39 @@ function normalizarItem(item) {
 
   return {
     ...item,
-    nome: item.nome || 'Item sem nome',
-    descricao: item.descricao || 'Este item ainda não possui uma descrição cadastrada.',
-    bonus: item.bonus || '',
+    nome: item.nome_item || 'Item sem nome',
+    descricao:
+      item.descricao_item ||
+      'Este item ainda não possui uma descrição cadastrada.',
     quantidade: item.quantidade ?? 1,
   };
 }
 
-export function VisualizacaoInventario({ inventario = [], aoAlternarEquipamento }) {
+export function VisualizacaoInventario() {
+  const [itens, setItens] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
 
-  const itemsData = useMemo(() => {
-    const slots = Array.from({ length: TOTAL_SLOTS }, (_, index) => normalizarItem(inventario[index]));
-    return slots;
-  }, [inventario]);
+  useEffect(() => {
+    async function carregarInventario() {
+      try {
+        const resposta = await requisitarJson('/itens/minha-equipe');
 
-  const selectedItem = selectedIndex === null ? null : itemsData[selectedIndex];
+        setItens(resposta.itens);
+      } catch (erro) {
+        console.error('Erro ao carregar inventário:', erro);
+      }
+    }
+
+    carregarInventario();
+  }, []);
+
+  const itemsData = Array.from(
+    { length: TOTAL_SLOTS },
+    (_, index) => normalizarItem(itens[index])
+  );
+
+  const selectedItem =
+    selectedIndex === null ? null : itemsData[selectedIndex];
 
   function handleSlotClick(index) {
     const item = itemsData[index];
@@ -33,14 +51,9 @@ export function VisualizacaoInventario({ inventario = [], aoAlternarEquipamento 
       return;
     }
 
-    setSelectedIndex((current) => (current === index ? null : index));
-  }
-
-  function handleEquipClick(event) {
-    event.stopPropagation();
-    if (selectedItem?.id != null && aoAlternarEquipamento) {
-      aoAlternarEquipamento(selectedItem.id);
-    }
+    setSelectedIndex((current) =>
+      current === index ? null : index
+    );
   }
 
   return (
@@ -51,8 +64,10 @@ export function VisualizacaoInventario({ inventario = [], aoAlternarEquipamento 
         <div className="inventory-grid" id="inventoryGrid">
           {itemsData.map((item, index) => (
             <div
-              key={item?.id ?? `empty-${index}`}
-              className={`inventory-slot ${item ? 'filled' : 'empty'} ${selectedIndex === index ? 'selected' : ''}`}
+              key={item?.id_item ?? `empty-${index}`}
+              className={`inventory-slot ${
+                item ? 'filled' : 'empty'
+              } ${selectedIndex === index ? 'selected' : ''}`}
               data-index={index}
               onClick={() => handleSlotClick(index)}
               role="button"
@@ -63,12 +78,21 @@ export function VisualizacaoInventario({ inventario = [], aoAlternarEquipamento 
                   handleSlotClick(index);
                 }
               }}
-              aria-label={item ? `Selecionar ${item.nome}` : 'Slot vazio'}
+              aria-label={
+                item
+                  ? `Selecionar ${item.nome}`
+                  : 'Slot vazio'
+              }
             >
               {item ? (
                 <div className="item-name">
                   {item.nome}
-                  {item.quantidade > 1 && <span className="item-quantity">x{item.quantidade}</span>}
+
+                  {item.quantidade > 1 && (
+                    <span className="item-quantity">
+                      x{item.quantidade}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <div className="empty-slot">⚔️</div>
@@ -81,15 +105,24 @@ export function VisualizacaoInventario({ inventario = [], aoAlternarEquipamento 
           {selectedItem ? (
             <>
               <h2>{selectedItem.nome}</h2>
-              {selectedItem.bonus && <strong className="item-detail__bonus">{selectedItem.bonus}</strong>}
+
               <p>{selectedItem.descricao}</p>
+
+              <span>
+                Estado: {selectedItem.estado_item}
+              </span>
+
+              <span>
+                Quantidade: {selectedItem.quantidade}
+              </span>
             </>
           ) : (
-            <p className="empty-message">⚔️ Selecione um item para ver seus detalhes</p>
+            <p className="empty-message">
+              ⚔️ Selecione um item para ver seus detalhes
+            </p>
           )}
         </div>
       </div>
     </section>
   );
 }
-
