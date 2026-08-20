@@ -20,6 +20,7 @@ const classeRoutes = require("./routes/classeRoutes");
 const equipeRoutes = require("./routes/equipeRoutes");
 const mundoRoutes = require("./routes/mundoRoutes");
 const itemRoutes = require("./routes/itemRoutes");
+const poderesRoutes = require("./routes/poderesRoutes");
  
 app.use("/usuarios", usuarioRoutes);
 app.use("/auth", authRoutes);
@@ -27,6 +28,7 @@ app.use("/classes", classeRoutes);
 app.use("/equipes", equipeRoutes);
 app.use("/mundo", mundoRoutes);
 app.use("/itens", itemRoutes);
+app.use("/poderes", poderesRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ ok: true });
