@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { personagemInicial } from '../dados/personagemInicial';
+
+import {
+  listarPoderes,
+  buscarEstadoPoderes,
+  usarPoder,
+} from '../servicos/poderesServico';
+
 import { BarraModoDispositivo } from '../componentes/ficha-rpg/BarraModoDispositivo';
 import { VisualizacaoDesktop } from '../componentes/ficha-rpg/VisualizacaoDesktop';
 import { VisualizacaoMobile } from '../componentes/ficha-rpg/VisualizacaoMobile';
@@ -63,6 +70,12 @@ const TERRITORIOS = {
 export default function PaginaFichaRpg() {
   const [personagem, setPersonagem] = useState(() => carregarPersonagem() || personagemInicial);
   const [modoDispositivo, setModoDispositivo] = useState('auto');
+
+  const [poderes, setPoderes] = useState([]);
+  const [mpAtual, setMpAtual] = useState(0);
+  const [chaveDeCeraUsada, setChaveDeCeraUsada] = useState(false);
+  const [carregandoPoderes, setCarregandoPoderes] = useState(true);
+
   const [abaAtiva, setAbaAtiva] = useState('poderes');
   const [mostrarModalQr, setMostrarModalQr] = useState(false);
   const [sincronizandoBanco, setSincronizandoBanco] = useState(false);
@@ -73,6 +86,59 @@ export default function PaginaFichaRpg() {
   const dadosTerritorio = TERRITORIOS[territorioId];
 
   useEffect(() => { salvarPersonagem(personagem); }, [personagem]);
+
+  useEffect(() => {
+    async function carregarPoderes() {
+      try {
+        setCarregandoPoderes(true);
+
+        const lista = await listarPoderes();
+        const estado = await buscarEstadoPoderes();
+
+        setPoderes(lista);
+        setMpAtual(estado.mpAtual);
+        setChaveDeCeraUsada(estado.chaveDeCeraUsada);
+
+      } catch (erro) {
+        console.error('Erro ao carregar poderes:', erro);
+      } finally {
+        setCarregandoPoderes(false);
+      }
+    }
+
+    carregarPoderes();
+  }, []);
+
+  // FUNÇÃO EXECUTAR PODER
+  async function executarPoder(poder) {
+    try {
+      const resposta = await usarPoder(poder.id);
+
+      setMpAtual(resposta.mpAtual);
+
+      if (poder.nome === 'Chave de Cera') {
+        setChaveDeCeraUsada(true);
+      }
+
+      alert(resposta.mensagem);
+
+    } catch (erro) {
+      console.error('Erro ao usar poder:', erro);
+
+      try {
+        const dados = JSON.parse(erro.message);
+
+        alert(
+          dados.erro ||
+          'Não foi possível utilizar o poder.'
+        );
+
+      } catch {
+        alert('Não foi possível utilizar o poder.');
+      }
+    }
+  }
+
 
   const poderTotal = useMemo(() => {
     const bonusItens = personagem.inventario.filter((item) => item.equipado).reduce((acumulador, item) => acumulador + (item.raridade === 'lendario' ? 100 : item.raridade === 'epico' ? 70 : 40), 0);
@@ -168,16 +234,16 @@ export default function PaginaFichaRpg() {
 
   return (
     <div className="pagina-ficha-rpg">
-      <BarraModoDispositivo 
-        territorios={TERRITORIOS} 
-        territorioAtual={territorioId} 
-        aoMudarTerritorio={setTerritorioId} 
+      <BarraModoDispositivo
+        territorios={TERRITORIOS}
+        territorioAtual={territorioId}
+        aoMudarTerritorio={setTerritorioId}
       />
 
       {mensagemSincronizacao && <div className="pagina-ficha-rpg__mensagem">{mensagemSincronizacao}</div>}
-      
+
       <div className="pagina-ficha-rpg__conteudo">
-        
+
         {/* CABEÇALHO DO TERRITÓRIO */}
         <div className="territorio-cabecalho">
           <h1>{dadosTerritorio.icone} {dadosTerritorio.nome}</h1>
@@ -191,81 +257,91 @@ export default function PaginaFichaRpg() {
            e receber essa prop nas funções, senão nada muda na tela.
         */}
         {modoDispositivo === 'mobile' && (
-          <VisualizacaoMobile 
-            personagem={personagem} 
+          <VisualizacaoMobile
+            personagem={personagem}
             dadosTerritorio={dadosTerritorio} // <-- NOVO
-            poderTotal={poderTotal} 
-            abaAtiva={abaAtiva} 
-            aoSelecionarAba={setAbaAtiva} 
-            aoAtualizarNome={atualizarNome} 
-            aoAtualizarClasse={atualizarClasse} 
-            aoGanharExperiencia={ganharExperiencia} 
-            aoAtualizarAtributo={atualizarAtributo} 
-            aoConcluirMissao={concluirMissao} 
-            aoAlternarEquipamento={alternarEquipamento} 
-            aoAbrirModalQr={() => setMostrarModalQr(true)} 
-            aoResgatarQr={resgatarQr} 
+            poderes={poderes}
+            mpAtual={mpAtual}
+            chaveDeCeraUsada={chaveDeCeraUsada}
+            carregandoPoderes={carregandoPoderes}
+            aoUsarPoder={executarPoder}
+            poderTotal={poderTotal}
+            abaAtiva={abaAtiva}
+            aoSelecionarAba={setAbaAtiva}
+            aoAtualizarNome={atualizarNome}
+            aoAtualizarClasse={atualizarClasse}
+            aoGanharExperiencia={ganharExperiencia}
+            aoAtualizarAtributo={atualizarAtributo}
+            aoConcluirMissao={concluirMissao}
+            aoAlternarEquipamento={alternarEquipamento}
+            aoAbrirModalQr={() => setMostrarModalQr(true)}
+            aoResgatarQr={resgatarQr}
           />
         )}
-        
+
         {modoDispositivo === 'desktop' && (
-          <VisualizacaoDesktop 
-            personagem={personagem} 
+          <VisualizacaoDesktop
+            personagem={personagem}
             dadosTerritorio={dadosTerritorio} // <-- NOVO
-            poderTotal={poderTotal} 
-            abaAtiva={abaAtiva} 
-            aoSelecionarAba={setAbaAtiva} 
-            aoAtualizarNome={atualizarNome} 
-            aoAtualizarClasse={atualizarClasse} 
-            aoGanharExperiencia={ganharExperiencia} 
-            aoAtualizarAtributo={atualizarAtributo} 
-            aoConcluirMissao={concluirMissao} 
-            aoAlternarEquipamento={alternarEquipamento} 
-            aoAbrirModalQr={() => setMostrarModalQr(true)} 
-            aoResgatarQr={resgatarQr} 
+            poderes={poderes}
+            mpAtual={mpAtual}
+            chaveDeCeraUsada={chaveDeCeraUsada}
+            carregandoPoderes={carregandoPoderes}
+            aoUsarPoder={executarPoder}
+            poderTotal={poderTotal}
+            abaAtiva={abaAtiva}
+            aoSelecionarAba={setAbaAtiva}
+            aoAtualizarNome={atualizarNome}
+            aoAtualizarClasse={atualizarClasse}
+            aoGanharExperiencia={ganharExperiencia}
+            aoAtualizarAtributo={atualizarAtributo}
+            aoConcluirMissao={concluirMissao}
+            aoAlternarEquipamento={alternarEquipamento}
+            aoAbrirModalQr={() => setMostrarModalQr(true)}
+            aoResgatarQr={resgatarQr}
           />
         )}
-        
+
         {modoDispositivo === 'auto' && (
           <>
             <div className="pagina-ficha-rpg__somente-mobile">
-              <VisualizacaoMobile 
-                personagem={personagem} 
+              <VisualizacaoMobile
+                personagem={personagem}
                 dadosTerritorio={dadosTerritorio} // <-- NOVO
-                poderTotal={poderTotal} 
-                abaAtiva={abaAtiva} 
-                aoSelecionarAba={setAbaAtiva} 
-                aoAtualizarNome={atualizarNome} 
-                aoAtualizarClasse={atualizarClasse} 
-                aoGanharExperiencia={ganharExperiencia} 
-                aoAtualizarAtributo={atualizarAtributo} 
-                aoConcluirMissao={concluirMissao} 
-                aoAlternarEquipamento={alternarEquipamento} 
-                aoAbrirModalQr={() => setMostrarModalQr(true)} 
-                aoResgatarQr={resgatarQr} 
+                poderTotal={poderTotal}
+                abaAtiva={abaAtiva}
+                aoSelecionarAba={setAbaAtiva}
+                aoAtualizarNome={atualizarNome}
+                aoAtualizarClasse={atualizarClasse}
+                aoGanharExperiencia={ganharExperiencia}
+                aoAtualizarAtributo={atualizarAtributo}
+                aoConcluirMissao={concluirMissao}
+                aoAlternarEquipamento={alternarEquipamento}
+                aoAbrirModalQr={() => setMostrarModalQr(true)}
+                aoResgatarQr={resgatarQr}
               />
             </div>
             <div className="pagina-ficha-rpg__somente-desktop">
-              <VisualizacaoDesktop 
-                personagem={personagem} 
+              <VisualizacaoDesktop
+                personagem={personagem}
                 dadosTerritorio={dadosTerritorio} // <-- NOVO
-                poderTotal={poderTotal} 
-                abaAtiva={abaAtiva} 
-                aoSelecionarAba={setAbaAtiva} 
-                aoAtualizarNome={atualizarNome} 
-                aoAtualizarClasse={atualizarClasse} 
-                aoGanharExperiencia={ganharExperiencia} 
-                aoAtualizarAtributo={atualizarAtributo} 
-                aoConcluirMissao={concluirMissao} 
-                aoAlternarEquipamento={alternarEquipamento} 
-                aoAbrirModalQr={() => setMostrarModalQr(true)} 
-                aoResgatarQr={resgatarQr} 
+                poderTotal={poderTotal}
+                abaAtiva={abaAtiva}
+                aoSelecionarAba={setAbaAtiva}
+                aoAtualizarNome={atualizarNome}
+                aoAtualizarClasse={atualizarClasse}
+                aoGanharExperiencia={ganharExperiencia}
+                aoAtualizarAtributo={atualizarAtributo}
+                aoConcluirMissao={concluirMissao}
+                aoAlternarEquipamento={alternarEquipamento}
+                aoAbrirModalQr={() => setMostrarModalQr(true)}
+                aoResgatarQr={resgatarQr}
               />
             </div>
           </>
         )}
       </div>
-      
+
       {mostrarModalQr && <ModalQr personagem={personagem} poderTotal={poderTotal} aoFechar={() => setMostrarModalQr(false)} />}
     </div>
   );
