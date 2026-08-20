@@ -2,7 +2,6 @@ const express = require("express");
 
 const poderesController = require("../controllers/poderesController");
 const { autenticar } = require("../middlewares/autenticacao");
-
 const router = express.Router();
 
 

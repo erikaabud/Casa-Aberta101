@@ -10,28 +10,37 @@ function iconePorClasse(classe) {
 }
 
 export function VisualizacaoPoderes({
-  habilidades,
+  habilidades = [],
   mpAtual,
   chaveDeCeraUsada,
   aoUsarPoder,
 }) {
+  const habilidadesNormalizadas = Array.isArray(habilidades) ? habilidades : [];
+
   return (
     <section className="visualizacao-poderes">
       <h2>Habilidades e Poderes</h2>
       <div className="visualizacao-poderes__lista">
-        {habilidades.map((habilidade) => (
+        {habilidadesNormalizadas.map((habilidade) => {
+          const custo = habilidade.custoMP ?? habilidade.custoMana ?? habilidade.custo ?? 0;
+          const tipo = habilidade.tipo ?? 'Poder';
+          const recarga = habilidade.recarga ?? (habilidade.usoUnico ? 'Uso único' : 'Sem recarga');
+          const descricao = habilidade.descricao ?? `Poder da classe ${habilidade.classe ?? 'aventureiro'}.`;
+
+          return (
           <article key={habilidade.id} className="visualizacao-poderes__card">
-            <div className="visualizacao-poderes__icone">{iconePorTipo(habilidade.classe)}</div>
+            <div className="visualizacao-poderes__icone">{iconePorClasse(habilidade.classe)}</div>
             <div className="visualizacao-poderes__conteudo">
               <div className="visualizacao-poderes__cabecalho">
                 <h3>{habilidade.nome}</h3>
-                <span>{habilidade.custoMP} MP</span>
+                <span>{custo} MP</span>
               </div>
-              <small>Tipo: {habilidade.tipo} • Recarga: {habilidade.recarga}</small>
-              <p>{habilidade.descricao}</p>
+              <small>Tipo: {tipo} • Recarga: {recarga}</small>
+              <p>{descricao}</p>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

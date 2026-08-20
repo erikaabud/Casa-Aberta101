@@ -308,6 +308,11 @@ export default function PaginaFichaRpg() {
               <VisualizacaoMobile
                 personagem={personagem}
                 dadosTerritorio={dadosTerritorio} // <-- NOVO
+                poderes={poderes}
+                mpAtual={mpAtual}
+                chaveDeCeraUsada={chaveDeCeraUsada}
+                carregandoPoderes={carregandoPoderes}
+                aoUsarPoder={executarPoder}
                 poderTotal={poderTotal}
                 abaAtiva={abaAtiva}
                 aoSelecionarAba={setAbaAtiva}
@@ -325,6 +330,11 @@ export default function PaginaFichaRpg() {
               <VisualizacaoDesktop
                 personagem={personagem}
                 dadosTerritorio={dadosTerritorio} // <-- NOVO
+                poderes={poderes}
+                mpAtual={mpAtual}
+                chaveDeCeraUsada={chaveDeCeraUsada}
+                carregandoPoderes={carregandoPoderes}
+                aoUsarPoder={executarPoder}
                 poderTotal={poderTotal}
                 abaAtiva={abaAtiva}
                 aoSelecionarAba={setAbaAtiva}
