@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './LeitorQr.css';
 
 const URL_AFRAME = 'https://aframe.io/releases/1.6.0/aframe.min.js';
@@ -157,11 +157,204 @@ export function LeitorQr({
   aoColetarArtefatoAr,
 }) {
   const { pronto, erro } = useMotorAr();
+  const referenciaCena = useRef(null);
+  const [erroCamera, setErroCamera] = useState(null);
+  const [cameraAtiva, setCameraAtiva] = useState(false);
   const [coletadoNoPainel, setColetadoNoPainel] = useState(false);
 
   useEffect(() => {
     setColetadoNoPainel(false);
+    setErroCamera(null);
+    setCameraAtiva(false);
   }, [dadosTerritorio?.nome, artefatoAr?.item?.chave]);
+
+  function encaixarElementosArNoQuadro() {
+    const container = referenciaCena.current;
+
+    if (!container) return false;
+
+    const canvasAlvoNoModal = container.querySelector('.a-canvas.a-grab-cursor');
+
+    const videoAr =
+      document.querySelector('#arjs-video') ||
+      document.querySelector('body > video');
+
+    const canvasAr =
+      canvasAlvoNoModal ||
+      document.querySelector('.a-canvas.a-grab-cursor') ||
+      document.querySelector('.a-canvas') ||
+      document.querySelector('canvas[data-aframe-canvas]');
+
+    if (canvasAr && canvasAr.parentElement !== container) {
+      container.appendChild(canvasAr);
+    }
+
+    if (videoAr && videoAr.parentElement !== container) {
+      if (canvasAr) {
+        container.insertBefore(videoAr, canvasAr);
+      } else {
+        container.appendChild(videoAr);
+      }
+    }
+
+    [videoAr, canvasAr].filter(Boolean).forEach((elemento) => {
+      elemento.style.setProperty('position', 'absolute', 'important');
+      elemento.style.setProperty('inset', '0', 'important');
+      elemento.style.setProperty('top', '0', 'important');
+      elemento.style.setProperty('left', '0', 'important');
+      elemento.style.setProperty('width', '100%', 'important');
+      elemento.style.setProperty('height', '100%', 'important');
+      elemento.style.setProperty('max-width', '100%', 'important');
+      elemento.style.setProperty('max-height', '100%', 'important');
+      elemento.style.setProperty('display', 'block', 'important');
+      elemento.style.setProperty('transform', 'none', 'important');
+      elemento.style.setProperty('margin', '0', 'important');
+    });
+
+    if (videoAr) {
+      videoAr.setAttribute('playsinline', 'true');
+      videoAr.muted = true;
+      videoAr.dataset.arDentroDoModal = 'true';
+      videoAr.style.setProperty('object-fit', 'cover', 'important');
+      videoAr.style.setProperty('z-index', '0', 'important');
+      videoAr.style.setProperty('opacity', '1', 'important');
+      videoAr.style.setProperty('visibility', 'visible', 'important');
+    }
+
+    if (canvasAr) {
+      canvasAr.dataset.arDentroDoModal = 'true';
+      canvasAr.style.setProperty('z-index', '1', 'important');
+      canvasAr.style.setProperty('pointer-events', 'none', 'important');
+      canvasAr.style.setProperty('background', 'transparent', 'important');
+    }
+
+    return !!videoAr;
+  }
+
+  // Pré-checagem de permissão: força o prompt de câmera (e captura erro de HTTP/permite negada)
+  useEffect(() => {
+    let ativo = true;
+
+    async function checarPermissaoCamera() {
+      if (!pronto) return;
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        if (ativo) {
+          setErroCamera('Este navegador não suporta acesso à câmera (getUserMedia).');
+        }
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: false,
+        });
+
+        stream.getTracks().forEach((trilha) => trilha.stop());
+
+        if (ativo) {
+          setErroCamera(null);
+        }
+      } catch (erro) {
+        const nome = erro?.name || '';
+        let mensagem =
+          erro?.message ||
+          'Não foi possível acessar a câmera. Verifique a permissão do navegador.';
+
+        if (nome === 'NotAllowedError' || nome === 'PermissionDeniedError') {
+          mensagem =
+            'Permissão de câmera negada. Libere o acesso à câmera para este site e recarregue a página.';
+        } else if (nome === 'NotFoundError' || nome === 'DevicesNotFoundError') {
+          mensagem =
+            'Nenhuma câmera foi encontrada neste dispositivo.';
+        } else if (nome === 'NotReadableError') {
+          mensagem =
+            'A câmera está em uso por outro aplicativo. Feche-o e tente novamente.';
+        } else if (nome === 'SecurityError') {
+          mensagem =
+            'A câmera só funciona em HTTPS ou em localhost. Rode o projeto em um endereço seguro.';
+        }
+
+        if (ativo) {
+          setErroCamera(mensagem);
+        }
+      }
+    }
+
+    checarPermissaoCamera();
+
+    return () => {
+      ativo = false;
+    };
+  }, [pronto]);
+
+  // Observa o vídeo do AR.js e marca quando a câmera realmente ficou ativa
+  useEffect(() => {
+    if (!pronto) return undefined;
+
+    let ativo = true;
+    let tentativas = 0;
+    const maxTentativas = 14; // ~7s
+    const observador = new MutationObserver(() => {
+      encaixarElementosArNoQuadro();
+    });
+
+    observador.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    const intervalo = window.setInterval(() => {
+      encaixarElementosArNoQuadro();
+      tentativas += 1;
+
+      const video = document.querySelector('#arjs-video');
+      const canvasNoModal = referenciaCena.current?.querySelector('.a-canvas.a-grab-cursor');
+
+      const estaAtivo =
+        !!video &&
+        (video.readyState >= 2 || video.videoWidth > 0 || video.videoHeight > 0) &&
+        !!canvasNoModal;
+
+      if (ativo && estaAtivo) {
+        setCameraAtiva(true);
+        window.clearInterval(intervalo);
+        return;
+      }
+
+      if (tentativas >= maxTentativas) {
+        if (ativo) {
+          setCameraAtiva(false);
+        }
+        window.clearInterval(intervalo);
+      }
+    }, 500);
+
+    return () => {
+      ativo = false;
+      observador.disconnect();
+      window.clearInterval(intervalo);
+    };
+  }, [pronto, dadosTerritorio?.nome]);
+
+  useEffect(() => {
+    return () => {
+      const videoAr =
+        document.querySelector('#arjs-video') ||
+        document.querySelector('body > video');
+
+      const fluxo = videoAr?.srcObject;
+
+      if (fluxo?.getTracks) {
+        fluxo.getTracks().forEach((trilha) => trilha.stop());
+      }
+
+      if (videoAr) {
+        videoAr.srcObject = null;
+      }
+    };
+  }, []);
 
   const missaoRelacionada = useMemo(() => {
     const nomeMissao =
@@ -201,7 +394,7 @@ export function LeitorQr({
 
         <div className="leitor-qr__viewport">
           {pronto ? (
-            <div className="leitor-qr__cena">
+            <div ref={referenciaCena} className="leitor-qr__cena">
               <a-scene
                 embedded
                 arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
@@ -230,13 +423,20 @@ export function LeitorQr({
             Aponte a câmera para o marcador `hiro` para visualizar o objeto 3D
             do território em realidade aumentada.
           </p>
+          {!cameraAtiva && pronto && !erroCamera && (
+            <p className="leitor-qr__status">
+              Aguardando inicialização da câmera...
+            </p>
+          )}
           <p>
             Missão vinculada: <strong>{missaoRelacionada}</strong>
           </p>
           <p>
             Item da coleta: <strong>{artefatoAr.item.nome}</strong>
           </p>
-          {erro && <p className="leitor-qr__erro-texto">{erro}</p>}
+          {(erroCamera || erro) && (
+            <p className="leitor-qr__erro-texto">{erroCamera || erro}</p>
+          )}
           {coletadoNoPainel && (
             <p className="leitor-qr__coletado">
               O item foi adicionado ao inventário do personagem.
