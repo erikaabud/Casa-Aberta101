@@ -11,6 +11,7 @@ import { BarraModoDispositivo } from '../componentes/ficha-rpg/BarraModoDisposit
 import { VisualizacaoDesktop } from '../componentes/ficha-rpg/VisualizacaoDesktop';
 import { VisualizacaoMobile } from '../componentes/ficha-rpg/VisualizacaoMobile';
 import { ModalQr } from '../componentes/ficha-rpg/ModalQr';
+import { obterArtefatoArPorTerritorio } from '../dados/artefatosAr';
 import { carregarPersonagem, salvarPersonagem, sincronizarPersonagem } from '../servicos/personagemServico';
 import './PaginaFichaRpg.css';
 
@@ -84,6 +85,10 @@ export default function PaginaFichaRpg() {
   // --- NOVO: Estado do Território ---
   const [territorioId, setTerritorioId] = useState('floresta_sombria');
   const dadosTerritorio = TERRITORIOS[territorioId];
+  const artefatoArAtual = useMemo(
+    () => obterArtefatoArPorTerritorio(territorioId, dadosTerritorio?.missoes),
+    [territorioId, dadosTerritorio]
+  );
 
   useEffect(() => { salvarPersonagem(personagem); }, [personagem]);
 
@@ -209,15 +214,51 @@ export default function PaginaFichaRpg() {
     }));
   }
 
-  function resgatarQr() {
-    setPersonagem((personagemAtual) => ({
-      ...personagemAtual,
-      ouro: personagemAtual.ouro + 25,
-      inventario: [
-        ...personagemAtual.inventario,
-        { id: Date.now(), nome: 'Relíquia Resgatada', raridade: 'epico', descricao: 'Item obtido por um QR Code escaneado.', bonus: '+15 de ataque', icone: 'espada', equipado: false },
-      ],
-    }));
+  function coletarArtefatoAr(artefatoAr) {
+    if (!artefatoAr?.item) {
+      return false;
+    }
+
+    let itemFoiAdicionado = true;
+
+    setPersonagem((personagemAtual) => {
+      const itemJaExiste = personagemAtual.inventario.some(
+        (item) => item.origemArId === artefatoAr.item.chave
+      );
+
+      if (itemJaExiste) {
+        itemFoiAdicionado = false;
+        return personagemAtual;
+      }
+
+      const nomeMissaoVinculada =
+        artefatoAr.missaoVinculada?.nome || artefatoAr.missaoVinculada?.titulo;
+
+      return {
+        ...personagemAtual,
+        inventario: [
+          ...personagemAtual.inventario,
+          {
+            id: Date.now(),
+            nome: artefatoAr.item.nome,
+            raridade: artefatoAr.item.raridade,
+            descricao: artefatoAr.item.descricao,
+            bonus: artefatoAr.item.bonus,
+            icone: artefatoAr.item.icone,
+            quantidade: artefatoAr.item.quantidade ?? 1,
+            equipado: false,
+            origemArId: artefatoAr.item.chave,
+            territorioId,
+            territorioNome: dadosTerritorio.nome,
+            missaoId: artefatoAr.missaoVinculada?.id ?? null,
+            missaoNome: nomeMissaoVinculada || null,
+            modelo3d: artefatoAr.modelo?.caminho || null,
+          },
+        ],
+      };
+    });
+
+    return itemFoiAdicionado;
   }
 
   async function sincronizarComBanco() {
@@ -260,6 +301,7 @@ export default function PaginaFichaRpg() {
           <VisualizacaoMobile
             personagem={personagem}
             dadosTerritorio={dadosTerritorio} // <-- NOVO
+            artefatoAr={artefatoArAtual}
             poderes={poderes}
             mpAtual={mpAtual}
             chaveDeCeraUsada={chaveDeCeraUsada}
@@ -275,7 +317,8 @@ export default function PaginaFichaRpg() {
             aoConcluirMissao={concluirMissao}
             aoAlternarEquipamento={alternarEquipamento}
             aoAbrirModalQr={() => setMostrarModalQr(true)}
-            aoResgatarQr={resgatarQr}
+            aoResgatarQr={coletarArtefatoAr}
+            aoColetarArtefatoAr={coletarArtefatoAr}
           />
         )}
 
@@ -283,6 +326,7 @@ export default function PaginaFichaRpg() {
           <VisualizacaoDesktop
             personagem={personagem}
             dadosTerritorio={dadosTerritorio} // <-- NOVO
+            artefatoAr={artefatoArAtual}
             poderes={poderes}
             mpAtual={mpAtual}
             chaveDeCeraUsada={chaveDeCeraUsada}
@@ -298,7 +342,8 @@ export default function PaginaFichaRpg() {
             aoConcluirMissao={concluirMissao}
             aoAlternarEquipamento={alternarEquipamento}
             aoAbrirModalQr={() => setMostrarModalQr(true)}
-            aoResgatarQr={resgatarQr}
+            aoResgatarQr={coletarArtefatoAr}
+            aoColetarArtefatoAr={coletarArtefatoAr}
           />
         )}
 
@@ -308,6 +353,7 @@ export default function PaginaFichaRpg() {
               <VisualizacaoMobile
                 personagem={personagem}
                 dadosTerritorio={dadosTerritorio} // <-- NOVO
+                artefatoAr={artefatoArAtual}
                 poderes={poderes}
                 mpAtual={mpAtual}
                 chaveDeCeraUsada={chaveDeCeraUsada}
@@ -323,13 +369,15 @@ export default function PaginaFichaRpg() {
                 aoConcluirMissao={concluirMissao}
                 aoAlternarEquipamento={alternarEquipamento}
                 aoAbrirModalQr={() => setMostrarModalQr(true)}
-                aoResgatarQr={resgatarQr}
+                aoResgatarQr={coletarArtefatoAr}
+                aoColetarArtefatoAr={coletarArtefatoAr}
               />
             </div>
             <div className="pagina-ficha-rpg__somente-desktop">
               <VisualizacaoDesktop
                 personagem={personagem}
                 dadosTerritorio={dadosTerritorio} // <-- NOVO
+                artefatoAr={artefatoArAtual}
                 poderes={poderes}
                 mpAtual={mpAtual}
                 chaveDeCeraUsada={chaveDeCeraUsada}
@@ -345,7 +393,8 @@ export default function PaginaFichaRpg() {
                 aoConcluirMissao={concluirMissao}
                 aoAlternarEquipamento={alternarEquipamento}
                 aoAbrirModalQr={() => setMostrarModalQr(true)}
-                aoResgatarQr={resgatarQr}
+                aoResgatarQr={coletarArtefatoAr}
+                aoColetarArtefatoAr={coletarArtefatoAr}
               />
             </div>
           </>

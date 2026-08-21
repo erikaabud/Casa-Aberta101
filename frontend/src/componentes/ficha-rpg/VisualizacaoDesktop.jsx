@@ -16,6 +16,7 @@ const abas = [
 export function VisualizacaoDesktop({
   personagem,
   dadosTerritorio,
+  artefatoAr,
   poderes,
   mpAtual,
   chaveDeCeraUsada,
@@ -31,7 +32,8 @@ export function VisualizacaoDesktop({
   aoConcluirMissao,
   aoAlternarEquipamento,
   aoAbrirModalQr,
-  aoResgatarQr
+  aoResgatarQr,
+  aoColetarArtefatoAr
 }) {
   return (
     <section className="visualizacao-desktop">
@@ -65,7 +67,7 @@ export function VisualizacaoDesktop({
 
           {abaAtiva === 'inventario' && (
             <VisualizacaoInventario
-              inventario={dadosTerritorio.inventario}
+              inventario={personagem.inventario}
               aoAlternarEquipamento={aoAlternarEquipamento}
             />
           )}
@@ -79,11 +81,9 @@ export function VisualizacaoDesktop({
 
           {abaAtiva === 'qrcode' && (
             <LeitorQr
-              personagem={personagem}
-              poderTotal={poderTotal}
-              aoGanharExperiencia={aoGanharExperiencia}
-              aoResgatarQr={aoResgatarQr}
-              aoAbrirModalQr={aoAbrirModalQr}
+              dadosTerritorio={dadosTerritorio}
+              artefatoAr={artefatoAr}
+              aoColetarArtefatoAr={aoColetarArtefatoAr}
             />
           )}
         </div>

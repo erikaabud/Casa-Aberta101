@@ -10,6 +10,7 @@ import './VisualizacaoMobile.css';
 export function VisualizacaoMobile({
   personagem,
   dadosTerritorio, // <--- ADICIONADO
+  artefatoAr,
   poderes,
   mpAtual,
   chaveDeCeraUsada,
@@ -25,7 +26,8 @@ export function VisualizacaoMobile({
   aoConcluirMissao,
   aoAlternarEquipamento,
   aoAbrirModalQr,
-  aoResgatarQr
+  aoResgatarQr,
+  aoColetarArtefatoAr
 }) {
   return (
     <section className="visualizacao-mobile">
@@ -60,7 +62,7 @@ export function VisualizacaoMobile({
         {/* --- INVENTÁRIO (TROCADO PARA dadosTerritorio.inventario) --- */}
         {abaAtiva === 'inventario' && (
           <VisualizacaoInventario
-            inventario={dadosTerritorio.inventario}
+            inventario={personagem.inventario}
             aoAlternarEquipamento={aoAlternarEquipamento}
           />
         )}
@@ -76,11 +78,9 @@ export function VisualizacaoMobile({
         {/* --- QR CODE (Mantido igual, pois é ação, não dado) --- */}
         {abaAtiva === 'qrcode' && (
           <LeitorQr
-            personagem={personagem}
-            poderTotal={poderTotal}
-            aoGanharExperiencia={aoGanharExperiencia}
-            aoResgatarQr={aoResgatarQr}
-            aoAbrirModalQr={aoAbrirModalQr}
+            dadosTerritorio={dadosTerritorio}
+            artefatoAr={artefatoAr}
+            aoColetarArtefatoAr={aoColetarArtefatoAr}
           />
         )}
       </div>

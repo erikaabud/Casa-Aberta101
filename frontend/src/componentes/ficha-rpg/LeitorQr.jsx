@@ -1,205 +1,258 @@
-import { useEffect, useRef, useState } from 'react';
-import jsQR from 'jsqr';
-import { IconeEspadaAlada } from './EmblemasMedievais';
+import { useEffect, useMemo, useState } from 'react';
 import './LeitorQr.css';
 
-export function LeitorQr({ personagem, poderTotal, aoGanharExperiencia, aoResgatarQr, aoAbrirModalQr }) {
-  const [modoAtivo, setModoAtivo] = useState('leitura');
-  const [cameraAtiva, setCameraAtiva] = useState(false);
-  const [erroCamera, setErroCamera] = useState(null);
-  const [resultadoLido, setResultadoLido] = useState(null);
-  const [copiado, setCopiado] = useState(false);
+const URL_AFRAME = 'https://aframe.io/releases/1.6.0/aframe.min.js';
+const URL_ARJS = 'https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js';
 
-  const referenciaVideo = useRef(null);
-  const referenciaCanvas = useRef(null);
-  const referenciaArquivo = useRef(null);
-  const referenciaAnimacao = useRef(null);
+function carregarScript(id, src) {
+  return new Promise((resolve, reject) => {
+    const scriptExistente = document.getElementById(id);
 
-  async function iniciarCamera() {
-    setErroCamera(null);
-    setResultadoLido(null);
-    try {
-      if (!navigator.mediaDevices?.getUserMedia) throw new Error('A câmera não é suportada neste navegador.');
-      const fluxo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } } });
-      if (referenciaVideo.current) {
-        referenciaVideo.current.srcObject = fluxo;
-        referenciaVideo.current.setAttribute('playsinline', 'true');
-        await referenciaVideo.current.play();
-        setCameraAtiva(true);
-      }
-    } catch (erro) {
-      setErroCamera(erro?.message || 'Não foi possível iniciar a câmera.');
-      setCameraAtiva(false);
-    }
-  }
-
-  function pararCamera() {
-    if (referenciaAnimacao.current) {
-      cancelAnimationFrame(referenciaAnimacao.current);
-      referenciaAnimacao.current = null;
-    }
-    const video = referenciaVideo.current;
-    const fluxo = video?.srcObject;
-    if (fluxo) {
-      fluxo.getTracks().forEach((trilha) => trilha.stop());
-      video.srcObject = null;
-    }
-    setCameraAtiva(false);
-  }
-
-  function escanearQuadro() {
-    const video = referenciaVideo.current;
-    const canvas = referenciaCanvas.current;
-    if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-      referenciaAnimacao.current = requestAnimationFrame(escanearQuadro);
-      return;
-    }
-    const contexto = canvas.getContext('2d', { willReadFrequently: true });
-    if (contexto) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imagem = contexto.getImageData(0, 0, canvas.width, canvas.height);
-      const codigo = jsQR(imagem.data, imagem.width, imagem.height, { inversionAttempts: 'dontInvert' });
-      if (codigo?.data) {
-        setResultadoLido(codigo.data);
-        pararCamera();
+    if (scriptExistente) {
+      if (scriptExistente.dataset.pronto === 'true') {
+        resolve();
         return;
       }
+
+      scriptExistente.addEventListener('load', resolve, { once: true });
+      scriptExistente.addEventListener(
+        'error',
+        () => reject(new Error(`Não foi possível carregar ${src}.`)),
+        { once: true }
+      );
+      return;
     }
-    referenciaAnimacao.current = requestAnimationFrame(escanearQuadro);
-  }
 
-  useEffect(() => {
-    if (modoAtivo === 'leitura') iniciarCamera();
-    else pararCamera();
-    return () => pararCamera();
-  }, [modoAtivo]);
-
-  useEffect(() => {
-    if (cameraAtiva && !resultadoLido) referenciaAnimacao.current = requestAnimationFrame(escanearQuadro);
-  }, [cameraAtiva, resultadoLido]);
-
-  function lidarComUpload(evento) {
-    const arquivo = evento.target.files?.[0];
-    if (!arquivo) return;
-    const leitor = new FileReader();
-    leitor.onload = (eventoLeitura) => {
-      const imagem = new Image();
-      imagem.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = imagem.width;
-        canvas.height = imagem.height;
-        const contexto = canvas.getContext('2d');
-        if (contexto) {
-          contexto.drawImage(imagem, 0, 0);
-          const dados = contexto.getImageData(0, 0, canvas.width, canvas.height);
-          const codigo = jsQR(dados.data, dados.width, dados.height);
-          if (codigo?.data) setResultadoLido(codigo.data);
-          else window.alert('Nenhum QR Code válido foi encontrado na imagem selecionada.');
-        }
-      };
-      imagem.src = eventoLeitura.target?.result;
+    const script = document.createElement('script');
+    script.id = id;
+    script.src = src;
+    script.async = true;
+    script.onload = () => {
+      script.dataset.pronto = 'true';
+      resolve();
     };
-    leitor.readAsDataURL(arquivo);
+    script.onerror = () =>
+      reject(new Error(`Não foi possível carregar ${src}.`));
+
+    document.body.appendChild(script);
+  });
+}
+
+function useMotorAr() {
+  const [estado, setEstado] = useState({
+    pronto: false,
+    erro: null,
+  });
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregar() {
+      try {
+        await carregarScript('aframe-runtime', URL_AFRAME);
+        await carregarScript('arjs-runtime', URL_ARJS);
+
+        if (ativo) {
+          setEstado({
+            pronto: true,
+            erro: null,
+          });
+        }
+      } catch (erro) {
+        if (ativo) {
+          setEstado({
+            pronto: false,
+            erro:
+              erro?.message ||
+              'Não foi possível iniciar o motor de realidade aumentada.',
+          });
+        }
+      }
+    }
+
+    carregar();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  return estado;
+}
+
+function ModeloArFallback({ fallback }) {
+  const configuracao = fallback || {};
+  const primitivo = configuracao.primitivo || 'box';
+
+  if (primitivo === 'octahedron') {
+    return (
+      <a-entity
+        geometry="primitive: octahedron; radius: 0.42"
+        material={`color: ${configuracao.cor || '#34d399'}; emissive: ${configuracao.emissive || '#14532d'}; metalness: 0.35; roughness: 0.25;`}
+        position={configuracao.posicao || '0 0.35 0'}
+        rotation={configuracao.rotacao || '0 45 0'}
+        scale={configuracao.escala || '0.45 0.45 0.45'}
+        animation="property: rotation; to: 0 405 0; loop: true; dur: 8000; easing: linear"
+      />
+    );
   }
 
-  function copiarTexto(texto) {
-    navigator.clipboard.writeText(texto);
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
+  if (primitivo === 'dodecahedron') {
+    return (
+      <a-entity
+        geometry="primitive: dodecahedron; radius: 0.38"
+        material={`color: ${configuracao.cor || '#f59e0b'}; emissive: ${configuracao.emissive || '#7c2d12'}; metalness: 0.4; roughness: 0.2;`}
+        position={configuracao.posicao || '0 0.4 0'}
+        rotation={configuracao.rotacao || '0 0 0'}
+        scale={configuracao.escala || '0.4 0.4 0.4'}
+        animation="property: rotation; to: 360 360 0; loop: true; dur: 6000; easing: linear"
+      />
+    );
   }
 
-  function resgatarRecompensa() {
-    aoResgatarQr();
-    aoGanharExperiencia();
-    window.alert('Recompensa de QR Code resgatada com sucesso.');
-    setResultadoLido(null);
-    iniciarCamera();
+  if (primitivo === 'icosahedron') {
+    return (
+      <a-entity
+        geometry="primitive: icosahedron; radius: 0.42"
+        material={`color: ${configuracao.cor || '#7dd3fc'}; emissive: ${configuracao.emissive || '#0c4a6e'}; metalness: 0.28; roughness: 0.24;`}
+        position={configuracao.posicao || '0 0.38 0'}
+        rotation={configuracao.rotacao || '0 0 0'}
+        scale={configuracao.escala || '0.46 0.46 0.46'}
+        animation="property: rotation; to: 0 360 360; loop: true; dur: 9000; easing: linear"
+      />
+    );
+  }
+
+  return (
+    <a-entity
+      geometry="primitive: box; depth: 0.5; height: 0.5; width: 0.5"
+      material={`color: ${configuracao.cor || '#d4af37'}; emissive: ${configuracao.emissive || '#5b4400'}; metalness: 0.32; roughness: 0.28;`}
+      position={configuracao.posicao || '0 0.35 0'}
+      rotation={configuracao.rotacao || '0 45 0'}
+      scale={configuracao.escala || '0.45 0.45 0.45'}
+      animation="property: rotation; to: 0 405 0; loop: true; dur: 7000; easing: linear"
+    />
+  );
+}
+
+function ConteudoMarcador({ artefato }) {
+  if (artefato?.modelo?.caminho) {
+    return (
+      <a-entity
+        gltf-model={`url(${artefato.modelo.caminho})`}
+        position={artefato.modelo.posicao || '0 0.35 0'}
+        rotation={artefato.modelo.rotacao || '0 0 0'}
+        scale={artefato.modelo.escala || '0.45 0.45 0.45'}
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 9000; easing: linear"
+      />
+    );
+  }
+
+  return <ModeloArFallback fallback={artefato?.fallback} />;
+}
+
+export function LeitorQr({
+  dadosTerritorio,
+  artefatoAr,
+  aoColetarArtefatoAr,
+}) {
+  const { pronto, erro } = useMotorAr();
+  const [coletadoNoPainel, setColetadoNoPainel] = useState(false);
+
+  useEffect(() => {
+    setColetadoNoPainel(false);
+  }, [dadosTerritorio?.nome, artefatoAr?.item?.chave]);
+
+  const missaoRelacionada = useMemo(() => {
+    const nomeMissao =
+      artefatoAr?.missaoVinculada?.nome || artefatoAr?.missaoVinculada?.titulo;
+
+    return nomeMissao || 'Missão não vinculada';
+  }, [artefatoAr]);
+
+  function lidarComColeta() {
+    const itemFoiAdicionado = aoColetarArtefatoAr?.(artefatoAr);
+
+    if (itemFoiAdicionado !== false) {
+      setColetadoNoPainel(true);
+    }
+  }
+
+  if (!dadosTerritorio || !artefatoAr) {
+    return (
+      <section className="leitor-qr">
+        <div className="leitor-qr__caixa">
+          <p className="leitor-qr__status">
+            Nenhum artefato de realidade aumentada foi configurado para este território.
+          </p>
+        </div>
+      </section>
+    );
   }
 
   return (
     <section className="leitor-qr">
-      <div className="leitor-qr__abas">
-        <button type="button" className={modoAtivo === 'leitura' ? 'ativo' : ''} onClick={() => setModoAtivo('leitura')}>Leitor de câmera</button>
-        <button type="button" className={modoAtivo === 'passaporte' ? 'ativo' : ''} onClick={() => setModoAtivo('passaporte')}>Meu passaporte</button>
-      </div>
+      <div className="leitor-qr__caixa">
+        <div className="leitor-qr__cabecalho">
+          <span className="leitor-qr__territorio">{dadosTerritorio.icone} {dadosTerritorio.nome}</span>
+          <h3>{artefatoAr.titulo}</h3>
+          <p>{artefatoAr.descricao}</p>
+        </div>
 
-      <canvas ref={referenciaCanvas} className="leitor-qr__canvas" />
-
-      {modoAtivo === 'leitura' && (
-        <div className="leitor-qr__caixa">
-          {!resultadoLido ? (
-            <>
-              <div className="leitor-qr__camera">
-                <video ref={referenciaVideo} className="leitor-qr__video" />
-                {cameraAtiva && <div className="leitor-qr__moldura"><div className="linha-varredura" /></div>}
-                {!cameraAtiva && !erroCamera && <div className="leitor-qr__vazio"><span>📷</span><p>Iniciando câmera...</p></div>}
-              </div>
-
-              {erroCamera && <div className="leitor-qr__erro"><strong>Falha ao abrir a câmera</strong><p>{erroCamera}</p><button type="button" onClick={iniciarCamera}>Tentar novamente</button></div>}
-
-              <p className="leitor-qr__status">Aproxime a câmera de um QR Code externo para ler.</p>
-
-              <div className="leitor-qr__acoes">
-                <button type="button" onClick={() => referenciaArquivo.current?.click()}>Enviar imagem QR</button>
-                <button type="button" onClick={() => setResultadoLido('RPG_ITEM_REWARD_EPIC_AMULET_2026')}>Simular prêmio</button>
-                <button type="button" onClick={() => setResultadoLido('https://meurpg.com/passaporte/12345')}>Simular link</button>
-              </div>
-
-              <input ref={referenciaArquivo} type="file" accept="image/*" className="leitor-qr__arquivo" onChange={lidarComUpload} />
-            </>
+        <div className="leitor-qr__viewport">
+          {pronto ? (
+            <div className="leitor-qr__cena">
+              <a-scene
+                embedded
+                arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
+                renderer="antialias: true; alpha: true; colorManagement: true;"
+                vr-mode-ui="enabled: false"
+                device-orientation-permission-ui="enabled: false"
+              >
+                <a-marker preset="hiro">
+                  <ConteudoMarcador artefato={artefatoAr} />
+                </a-marker>
+                <a-entity camera />
+              </a-scene>
+            </div>
           ) : (
-            <div className="leitor-qr__resultado">
-              <h3>QR Code lido com sucesso</h3>
-              <pre>{resultadoLido}</pre>
-              <div className="leitor-qr__acoes leitor-qr__acoes--resultado">
-                {resultadoLido.startsWith('RPG_') && <button type="button" className="primario" onClick={resgatarRecompensa}>Resgatar recompensa</button>}
-                <button type="button" onClick={() => copiarTexto(resultadoLido)}>{copiado ? 'Copiado!' : 'Copiar texto'}</button>
-                <button type="button" onClick={() => { setResultadoLido(null); iniciarCamera(); }}>Escanear outro</button>
+            <div className="leitor-qr__placeholder">
+              <div className="leitor-qr__placeholder-modelo">
+                <span>Marcador `hiro`</span>
+                <strong>Carregando visual AR...</strong>
               </div>
             </div>
           )}
         </div>
-      )}
 
-      {modoAtivo === 'passaporte' && (
-        <div className="leitor-qr__passaporte">
-          <IconeEspadaAlada tamanho={54} />
-          <h3>Seu QR Code do personagem</h3>
-          <button type="button" className="leitor-qr__botao-passaporte" onClick={aoAbrirModalQr}>Abrir passaporte completo</button>
-          <div className="leitor-qr__caixa-codigo">
-            <svg width="180" height="180" viewBox="0 0 100 100" fill="#070b12" aria-hidden="true">
-              <rect width="100" height="100" fill="#ffffff" />
-              <rect x="5" y="5" width="25" height="25" fill="#070b12" />
-              <rect x="10" y="10" width="15" height="15" fill="#ffffff" />
-              <rect x="13" y="13" width="9" height="9" fill="#070b12" />
-              <rect x="70" y="5" width="25" height="25" fill="#070b12" />
-              <rect x="75" y="10" width="15" height="15" fill="#ffffff" />
-              <rect x="78" y="13" width="9" height="9" fill="#070b12" />
-              <rect x="5" y="70" width="25" height="25" fill="#070b12" />
-              <rect x="10" y="75" width="15" height="15" fill="#ffffff" />
-              <rect x="13" y="78" width="9" height="9" fill="#070b12" />
-              <rect x="35" y="10" width="10" height="10" fill="#070b12" />
-              <rect x="50" y="5" width="5" height="15" fill="#070b12" />
-              <rect x="40" y="25" width="15" height="5" fill="#070b12" />
-              <rect x="10" y="35" width="20" height="5" fill="#070b12" />
-              <rect x="35" y="40" width="30" height="20" fill="#070b12" />
-              <rect x="45" y="45" width="10" height="10" fill="#ffffff" />
-              <rect x="70" y="35" width="20" height="15" fill="#070b12" />
-              <rect x="75" y="55" width="15" height="10" fill="#070b12" />
-              <rect x="35" y="70" width="15" height="20" fill="#070b12" />
-              <rect x="55" y="75" width="25" height="15" fill="#070b12" />
-            </svg>
-          </div>
-          <div className="leitor-qr__dados-personagem">
-            <h4>{personagem.nome}</h4>
-            <p>{personagem.classe} • Nível {personagem.nivel}</p>
-            <strong>Poder total: {poderTotal.toLocaleString('pt-BR')}</strong>
-          </div>
-          <button type="button" onClick={() => copiarTexto(window.location.href)}>{copiado ? 'Link copiado!' : 'Copiar link do passaporte'}</button>
+        <div className="leitor-qr__info">
+          <p>
+            Aponte a câmera para o marcador `hiro` para visualizar o objeto 3D
+            do território em realidade aumentada.
+          </p>
+          <p>
+            Missão vinculada: <strong>{missaoRelacionada}</strong>
+          </p>
+          <p>
+            Item da coleta: <strong>{artefatoAr.item.nome}</strong>
+          </p>
+          {erro && <p className="leitor-qr__erro-texto">{erro}</p>}
+          {coletadoNoPainel && (
+            <p className="leitor-qr__coletado">
+              O item foi adicionado ao inventário do personagem.
+            </p>
+          )}
         </div>
-      )}
+
+        <button
+          type="button"
+          className="leitor-qr__botao-coletar"
+          onClick={lidarComColeta}
+          disabled={coletadoNoPainel}
+        >
+          Coletar
+        </button>
+      </div>
     </section>
   );
 }

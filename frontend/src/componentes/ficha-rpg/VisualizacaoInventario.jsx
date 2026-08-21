@@ -9,35 +9,47 @@ function normalizarItem(item) {
 
   return {
     ...item,
-    nome: item.nome_item || 'Item sem nome',
+    id_item: item.id_item ?? item.id ?? `item-${item.nome || 'sem-id'}`,
+    nome: item.nome_item || item.nome || 'Item sem nome',
     descricao:
       item.descricao_item ||
+      item.descricao ||
       'Este item ainda não possui uma descrição cadastrada.',
     quantidade: item.quantidade ?? 1,
+    estado_item:
+      item.estado_item ||
+      (item.equipado ? 'Equipado' : 'Disponível'),
   };
 }
 
-export function VisualizacaoInventario() {
+export function VisualizacaoInventario({ inventario = [] }) {
   const [itens, setItens] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
 
   useEffect(() => {
+    if (Array.isArray(inventario) && inventario.length > 0) {
+      return undefined;
+    }
+
     async function carregarInventario() {
       try {
         const resposta = await requisitarJson('/itens/minha-equipe');
 
-        setItens(resposta.itens);
+        setItens(resposta.itens || []);
       } catch (erro) {
         console.error('Erro ao carregar inventário:', erro);
       }
     }
 
     carregarInventario();
-  }, []);
+  }, [inventario]);
+
+  const origemItens =
+    Array.isArray(inventario) && inventario.length > 0 ? inventario : itens;
 
   const itemsData = Array.from(
     { length: TOTAL_SLOTS },
-    (_, index) => normalizarItem(itens[index])
+    (_, index) => normalizarItem(origemItens[index])
   );
 
   const selectedItem =
