@@ -1,15 +1,390 @@
-.secao-missoes { padding:1rem; }
-.secao-missoes h2 { color:#d4af37; margin-bottom:1rem; font-size:1rem; letter-spacing:.08em; text-transform:uppercase; }
-.secao-missoes__lista { display:flex; flex-direction:column; gap:.7rem; }
-.secao-missoes__card { display:flex; align-items:center; justify-content:space-between; gap:.75rem; border:1px solid rgba(212,175,55,.25); border-radius:.85rem; padding:.95rem 1rem; background:rgba(10,15,26,.95); cursor:pointer; }
-.secao-missoes__esquerda { display:flex; align-items:center; gap:.75rem; }
-.secao-missoes__card h3, .secao-missoes__modal h3 { margin:0; color:#f8fafc; }
-.secao-missoes__card p, .secao-missoes__modal p { margin:0; color:#cbd5e1; line-height:1.5; }
-.secao-missoes__modal-fundo { position:fixed; inset:0; background:rgba(3,7,18,.85); display:grid; place-items:center; padding:1rem; z-index:50; }
-.secao-missoes__modal { position:relative; width:min(32rem,100%); background:#0b1220; border:1px solid #d4af37; border-radius:1rem; padding:1.5rem; display:flex; flex-direction:column; gap:.9rem; }
-.secao-missoes__modal small { color:#d4af37; }
-.secao-missoes__recompensas { display:flex; gap:.8rem; flex-wrap:wrap; }
-.secao-missoes__recompensas span { background:rgba(212,175,55,.12); color:#fff2bc; border:1px solid rgba(212,175,55,.3); border-radius:.5rem; padding:.45rem .65rem; }
-.secao-missoes__concluir, .secao-missoes__fechar { cursor:pointer; }
-.secao-missoes__concluir { border:0; background:linear-gradient(135deg,#d4af37,#8a6711); color:#070b12; border-radius:.7rem; padding:.85rem 1rem; font-weight:700; }
-.secao-missoes__fechar { position:absolute; top:.75rem; right:.75rem; border:0; background:transparent; color:#cbd5e1; }
+/* Estilos Dark Fantasy */
+.dark-fantasy-mission {
+    margin-top: 30px;
+  }
+  
+  .dark-fantasy-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .dark-fantasy-container .title {
+    text-align: center;
+    color: #d4a843;
+    font-size: 2.2rem;
+    font-weight: bold;
+    text-shadow: 0 0 20px rgba(212, 168, 67, 0.3), 0 0 40px rgba(212, 168, 67, 0.1);
+    margin-bottom: 20px;
+    letter-spacing: 4px;
+    font-family: 'Cinzel', 'Georgia', serif;
+  }
+  
+  .dark-fantasy-container .title small {
+    display: block;
+    font-size: 0.8rem;
+    color: #8b7355;
+    letter-spacing: 2px;
+    font-weight: normal;
+    margin-top: 5px;
+  }
+  
+  .mission-card {
+    background: linear-gradient(145deg, #1a1208, #0d0a05);
+    border: 2px solid #d4a843;
+    border-radius: 15px;
+    padding: 30px 25px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(212, 168, 67, 0.1), inset 0 0 60px rgba(212, 168, 67, 0.05), 0 10px 40px rgba(0, 0, 0, 0.8);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.5s, box-shadow 0.5s;
+  }
+  
+  .mission-card::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4a843, transparent);
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  
+  .mission-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #3a2a1a;
+    border: 1px solid #5a4a3a;
+    transition: all 0.5s ease;
+  }
+  
+  .dot.active {
+    background: #d4a843;
+    border-color: #d4a843;
+    box-shadow: 0 0 15px rgba(212, 168, 67, 0.5);
+    transform: scale(1.2);
+  }
+  
+  .dot.completed {
+    background: #2a5a2a;
+    border-color: #4a8a4a;
+    box-shadow: 0 0 10px rgba(74, 138, 74, 0.3);
+  }
+  
+  .mission-number {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #8b7355;
+    letter-spacing: 3px;
+    margin-bottom: 5px;
+    font-family: 'Cinzel', 'Georgia', serif;
+  }
+  
+  .mission-number span {
+    color: #d4a843;
+    font-size: 1.2rem;
+  }
+  
+  .mission-title {
+    text-align: center;
+    color: #d4a843;
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-shadow: 0 0 20px rgba(212, 168, 67, 0.2);
+    margin-bottom: 15px;
+    font-family: 'Cinzel', 'Georgia', serif;
+    line-height: 1.2;
+  }
+  
+  .mission-title .class-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    background: rgba(212, 168, 67, 0.15);
+    border: 1px solid rgba(212, 168, 67, 0.3);
+    border-radius: 20px;
+    padding: 3px 12px;
+    margin-top: 5px;
+    color: #d4a843;
+    letter-spacing: 2px;
+  }
+  
+  .mission-description {
+    color: #c4b59a;
+    font-size: 1rem;
+    line-height: 1.8;
+    text-align: center;
+    flex: 1;
+    padding: 10px 0;
+    font-family: 'Georgia', serif;
+  }
+  
+  .mission-description .highlight {
+    color: #d4a843;
+    font-weight: bold;
+  }
+  
+  .class-highlight {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+  }
+  
+  .class-highlight.warrior { color: #ff6b35; background: rgba(255, 107, 53, 0.1); }
+  .class-highlight.mage { color: #4a9eff; background: rgba(74, 158, 255, 0.1); }
+  .class-highlight.rogue { color: #7bed9f; background: rgba(123, 237, 159, 0.1); }
+  .class-highlight.general { color: #d4a843; background: rgba(212, 168, 67, 0.1); }
+  
+  .mission-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(212, 168, 67, 0.2);
+    font-size: 0.9rem;
+    color: #8b7355;
+  }
+  
+  .sub-task {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    padding-left: 8px;
+    border-bottom: 1px dashed rgba(212, 168, 67, 0.08);
+    transition: all 0.3s;
+  }
+  
+  .sub-task:last-child {
+    border-bottom: none;
+  }
+  
+  .sub-task .icon {
+    font-size: 1.1rem;
+    width: 28px;
+    text-align: center;
+    opacity: 0.8;
+  }
+  
+  .sub-task .label {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #c4b59a;
+  }
+  
+  .sub-task .counter {
+    font-size: 0.85rem;
+    font-weight: bold;
+    min-width: 45px;
+    text-align: center;
+    color: #d4a843;
+    font-family: 'Cinzel', serif;
+  }
+  
+  .sub-task.done .counter {
+    color: #4a8a4a;
+  }
+  
+  .sub-task.done .label {
+    color: #aabb88;
+    text-decoration: line-through 1px rgba(74, 138, 74, 0.3);
+  }
+  
+  .sub-task .qr-btn {
+    background: rgba(212, 168, 67, 0.12);
+    border: 1px solid rgba(212, 168, 67, 0.25);
+    border-radius: 30px;
+    padding: 3px 14px;
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    color: #d4a843;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+  }
+  
+  .sub-task .qr-btn:hover:not(.collected) {
+    background: rgba(212, 168, 67, 0.25);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.15);
+    transform: scale(1.05);
+  }
+  
+  .sub-task .qr-btn:active:not(.collected) {
+    transform: scale(0.92);
+  }
+  
+  .sub-task .qr-btn.collected {
+    opacity: 0.3;
+    cursor: default;
+    border-color: #4a8a4a;
+    background: rgba(74, 138, 74, 0.1);
+    color: #4a8a4a;
+    pointer-events: none;
+  }
+  
+  .progress-container {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(212, 168, 67, 0.15);
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #1a1208;
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid rgba(212, 168, 67, 0.2);
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d4a843, #f0d060);
+    transition: width 0.8s ease;
+    border-radius: 2px;
+    box-shadow: 0 0 15px rgba(212, 168, 67, 0.3);
+  }
+  
+  .progress-text {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #6a5a4a;
+  }
+  
+  .progress-text .current {
+    color: #d4a843;
+  }
+  
+  .button-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #d4a843;
+    background: transparent;
+    color: #d4a843;
+    font-family: 'Cinzel', 'Georgia', serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+  }
+  
+  .btn:hover {
+    background: rgba(212, 168, 67, 0.15);
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(212, 168, 67, 0.15);
+  }
+  
+  .btn:active {
+    transform: scale(0.98);
+  }
+  
+  .btn-success {
+    border-color: #4a8a4a;
+    color: #4a8a4a;
+    background: rgba(74, 138, 74, 0.1);
+  }
+  
+  .btn-success:hover {
+    background: rgba(74, 138, 74, 0.2);
+    box-shadow: 0 0 30px rgba(74, 138, 74, 0.15);
+  }
+  
+  .mission-complete {
+    animation: completePulse 0.5s ease;
+  }
+  
+  @keyframes completePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+  
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1208;
+    border: 1px solid #d4a843;
+    color: #d4a843;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 2px;
+    font-size: 0.9rem;
+    box-shadow: 0 0 40px rgba(212, 168, 67, 0.2);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.4s, transform 0.3s;
+    pointer-events: none;
+  }
+  
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  /* Responsivo */
+  @media (max-width: 480px) {
+    .dark-fantasy-container {
+      padding: 10px;
+    }
+    .dark-fantasy-container .title {
+      font-size: 1.6rem;
+    }
+    .mission-title {
+      font-size: 1.4rem;
+    }
+    .mission-card {
+      padding: 20px 15px;
+      min-height: 350px;
+    }
+    .mission-description {
+      font-size: 0.9rem;
+    }
+    .btn {
+      font-size: 0.8rem;
+      padding: 10px;
+    }
+    .sub-task {
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .sub-task .qr-btn {
+      font-size: 0.5rem;
+      padding: 2px 10px;
+    }
+    .sub-task .counter {
+      font-size: 0.75rem;
+      min-width: 35px;
+    }
+  }
