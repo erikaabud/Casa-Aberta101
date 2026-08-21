@@ -16,54 +16,125 @@ const MISSIONS_DATA = [
     ],
     classType: "general"
   },
+
   {
     id: 2,
     title: "Encontrar a Espada Selada",
     classTag: "⚔️ Trabalho do Guerreiro",
     description: `Localizar a espada que servirá de <span className="highlight">chave</span> para abrir a <span className="highlight">Câmara Selada</span>.`,
     items: [
-      { id: 'masmorra', label: 'Explorar masmorra', icon: '🗡️', max: 1 },
-      { id: 'local_espada', label: 'Encontrar local da espada', icon: '🔍', max: 1 },
-      { id: 'guardioes', label: 'Superar guardiões', icon: '⚔️', max: 1 },
-      { id: 'espada', label: 'Espada Selada', icon: '🗝️', max: 1 }
+      {
+        id: 'masmorra',
+        label: 'Explorar masmorra',
+        icon: '🗡️',
+        max: 1
+      },
+      {
+        id: 'local_espada',
+        label: 'Encontrar local da espada',
+        icon: '🔍',
+        max: 1
+      },
+      {
+        id: 'guardioes',
+        label: 'Superar guardiões',
+        icon: '⚔️',
+        max: 1
+      },
+      {
+        id: 'espada',
+        label: 'Espada Selada',
+        icon: '🗝️',
+        max: 1
+      }
     ],
     classType: "warrior"
   },
+
   {
     id: 3,
     title: "Resolver os Desafios",
     classTag: "🎯 Trabalho em Equipe",
-    description: `Abrir os Cryptex: um exige que o <span className="class-highlight rogue">Ladino</span> acerte <span className="highlight">10 pontos</span> no alvo e o outro o <span className="class-highlight mage">Mago</span> resolverá um <span className="highlight">desafio de alquimia</span>. O baú exige enfrentar um inimigo protetor da última joia.`,
+    description: `Abrir os Cryptex: um exige que o <span className="class-highlight rogue">Ladino</span> acerte <span className="highlight">10 pontos</span> no alvo e o outro o <span className="class-highlight mage">Mago</span> resolverá um <span className="highlight">desafio de alquimia</span>. O baú exige enfrentar um inimigo protetor.`,
     items: [
-      { id: 'alvo', label: 'Ladino: pontos no alvo', icon: '🎯', max: 10 },
-      { id: 'alquimia', label: 'Mago: desafio de alquimia', icon: '🧪', max: 1 },
-      { id: 'protetor', label: 'Guerreiro: enfrentar protetor', icon: '⚔️', max: 1 },
-      { id: 'ultima_joia', label: 'Última joia', icon: '💎', max: 1 }
+      {
+        id: 'alvo',
+        label: 'Ladino: pontos no alvo',
+        icon: '🎯',
+        max: 10
+      },
+      {
+        id: 'alquimia',
+        label: 'Mago: desafio de alquimia',
+        icon: '🧪',
+        max: 1
+      },
+      {
+        id: 'protetor',
+        label: 'Guerreiro: enfrentar protetor',
+        icon: '⚔️',
+        max: 1
+      }
     ],
     classType: "general"
   },
+
   {
     id: 4,
     title: "Recuperar a Bomba Alquímica",
     classTag: "🧪 Trabalho do Mago",
     description: `Desafio de alquimia alternativo para o <span className="class-highlight mage">Mago</span>, caso queira, opção a mais para atingir o <span className="highlight">chefe final</span>.`,
     items: [
-      { id: 'cor_vermelha', label: 'Combinar cores: Vermelha', icon: '🧪', max: 1 },
-      { id: 'cor_cinza', label: 'Combinar cores: Cinza', icon: '🧪', max: 1 },
-      { id: 'cor_verde', label: 'Combinar cores: Verde', icon: '🧪', max: 1 },
-      { id: 'bomba', label: 'Criar Bomba Alquímica', icon: '💣', max: 1 }
+      {
+        id: 'cor_vermelha',
+        label: 'Combinar cores: Vermelha',
+        icon: '🧪',
+        max: 1
+      },
+      {
+        id: 'cor_cinza',
+        label: 'Combinar cores: Cinza',
+        icon: '🧪',
+        max: 1
+      },
+      {
+        id: 'cor_verde',
+        label: 'Combinar cores: Verde',
+        icon: '🧪',
+        max: 1
+      },
+      {
+        id: 'bomba',
+        label: 'Criar Bomba Alquímica',
+        icon: '💣',
+        max: 1
+      }
     ],
     classType: "mage"
   }
 ];
 
-export function SecaoMissoes({ missoes, aoConcluirMissao }) {
-  const [missaoSelecionada, setMissaoSelecionada] = useState(null);
-  const [currentMissionIndex, setCurrentMissionIndex] = useState(0);
-  const [collectedItems, setCollectedItems] = useState({});
-  const [gameCompleted, setGameCompleted] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [showToast, setShowToast] = useState(false);
+export function SecaoMissoes({
+  missoes,
+  aoConcluirMissao
+}) {
+  const [missaoSelecionada, setMissaoSelecionada] =
+    useState(null);
+
+  const [currentMissionIndex, setCurrentMissionIndex] =
+    useState(0);
+
+  const [collectedItems, setCollectedItems] =
+    useState({});
+
+  const [gameCompleted, setGameCompleted] =
+    useState(false);
+
+  const [toastMessage, setToastMessage] =
+    useState('');
+
+  const [showToast, setShowToast] =
+    useState(false);
 
   const toastTimeoutRef = useRef(null);
   const missionCardRef = useRef(null);
@@ -102,7 +173,8 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
     const items = getMissionItems(missionIdx);
 
     return items.every(
-      item => (collectedItems[item.id] || 0) >= item.max
+      item =>
+        (collectedItems[item.id] || 0) >= item.max
     );
   };
 
@@ -125,18 +197,26 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
 
     if (!mission) return;
 
-    const item = mission.items.find(it => it.id === itemId);
+    const item = mission.items.find(
+      it => it.id === itemId
+    );
 
     if (!item) return;
 
-    if ((collectedItems[itemId] || 0) >= item.max) {
-      showToastMessage(`⚠️ "${item.label}" já está completo!`);
+    if (
+      (collectedItems[itemId] || 0) >= item.max
+    ) {
+      showToastMessage(
+        `⚠️ "${item.label}" já está completo!`
+      );
+
       return;
     }
 
     const newCollected = {
       ...collectedItems,
-      [itemId]: (collectedItems[itemId] || 0) + 1
+      [itemId]:
+        (collectedItems[itemId] || 0) + 1
     };
 
     setCollectedItems(newCollected);
@@ -148,32 +228,46 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
     );
 
     // Verificar se missão foi completada
-    const updatedItems = getMissionItems(missionIdx);
+    const updatedItems =
+      getMissionItems(missionIdx);
 
-    const allComplete = updatedItems.every(
-      it => (newCollected[it.id] || 0) >= it.max
-    );
+    const allComplete =
+      updatedItems.every(
+        it =>
+          (newCollected[it.id] || 0) >= it.max
+      );
 
     if (allComplete) {
-      if (missionIdx === MISSIONS_DATA.length - 1) {
+      if (
+        missionIdx ===
+        MISSIONS_DATA.length - 1
+      ) {
         setGameCompleted(true);
 
-        showToastMessage('🏆 Jornada completa!');
+        showToastMessage(
+          '🏆 Jornada completa!'
+        );
 
-        // Chamar aoConcluirMissao para a missão atual
-        aoConcluirMissao(MISSIONS_DATA[missionIdx].id);
+        aoConcluirMissao(
+          MISSIONS_DATA[missionIdx].id
+        );
       } else {
-        setCurrentMissionIndex(missionIdx + 1);
+        setCurrentMissionIndex(
+          missionIdx + 1
+        );
 
         showToastMessage(
           `✦ Missão ${MISSIONS_DATA[missionIdx].id} concluída!`
         );
 
-        // Chamar aoConcluirMissao para a missão atual
-        aoConcluirMissao(MISSIONS_DATA[missionIdx].id);
+        aoConcluirMissao(
+          MISSIONS_DATA[missionIdx].id
+        );
 
         if (missionCardRef.current) {
-          missionCardRef.current.classList.add('mission-complete');
+          missionCardRef.current.classList.add(
+            'mission-complete'
+          );
 
           setTimeout(() => {
             if (missionCardRef.current) {
@@ -201,21 +295,27 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
 
     setCollectedItems(initItems);
 
-    showToastMessage('🔄 Jornada reiniciada.');
+    showToastMessage(
+      '🔄 Jornada reiniciada.'
+    );
   };
 
   // Efeito para animação de entrada
   useEffect(() => {
     if (missionCardRef.current) {
       missionCardRef.current.style.opacity = '0';
-      missionCardRef.current.style.transform = 'translateY(20px)';
+
+      missionCardRef.current.style.transform =
+        'translateY(20px)';
 
       setTimeout(() => {
         if (missionCardRef.current) {
           missionCardRef.current.style.transition =
             'all 0.6s ease';
 
-          missionCardRef.current.style.opacity = '1';
+          missionCardRef.current.style.opacity =
+            '1';
+
           missionCardRef.current.style.transform =
             'translateY(0)';
         }
@@ -263,35 +363,43 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
                 fontSize: '1.2rem'
               }}
             >
-              ✦ Todos os desafios foram superados! ✦
+              ✦ Todos os desafios foram
+              superados! ✦
             </span>
 
             <br />
             <br />
 
-            A <span className="highlight">Sala do Chefe</span> está
-            aberta. Que a escuridão vos guie.
+            A{' '}
+            <span className="highlight">
+              Sala do Chefe
+            </span>{' '}
+            está aberta. Que a escuridão
+            vos guie.
           </div>
 
           <div className="mission-details">
-            {MISSIONS_DATA.map((mission, idx) => (
-              <div
-                key={idx}
-                className="sub-task done"
-              >
-                <span className="icon">
-                  ✨
-                </span>
+            {MISSIONS_DATA.map(
+              (mission, idx) => (
+                <div
+                  key={idx}
+                  className="sub-task done"
+                >
+                  <span className="icon">
+                    ✨
+                  </span>
 
-                <span className="label">
-                  Missão {mission.id}: {mission.title} ✓
-                </span>
+                  <span className="label">
+                    Missão {mission.id}:{' '}
+                    {mission.title} ✓
+                  </span>
 
-                <span className="counter">
-                  ✅
-                </span>
-              </div>
-            ))}
+                  <span className="counter">
+                    ✅
+                  </span>
+                </div>
+              )
+            )}
           </div>
 
           <div className="progress-container">
@@ -327,18 +435,27 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
       );
     }
 
-    const mission = MISSIONS_DATA[currentMissionIndex];
-    const items = getMissionItems(currentMissionIndex);
+    const mission =
+      MISSIONS_DATA[currentMissionIndex];
 
-    const completedMissions = currentMissionIndex;
-    const totalMissions = MISSIONS_DATA.length;
+    const items =
+      getMissionItems(currentMissionIndex);
 
-    const totalItems = items.length;
+    const completedMissions =
+      currentMissionIndex;
 
-    const completedItems = items.filter(
-      item =>
-        (collectedItems[item.id] || 0) >= item.max
-    ).length;
+    const totalMissions =
+      MISSIONS_DATA.length;
+
+    const totalItems =
+      items.length;
+
+    const completedItems =
+      items.filter(
+        item =>
+          (collectedItems[item.id] || 0) >=
+          item.max
+      ).length;
 
     const missionProgress =
       totalItems > 0
@@ -346,9 +463,11 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
         : 0;
 
     const overallProgress =
-      ((completedMissions + missionProgress) /
-        totalMissions) *
-      100;
+      (
+        (completedMissions +
+          missionProgress) /
+        totalMissions
+      ) * 100;
 
     return (
       <div
@@ -373,7 +492,8 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
         </div>
 
         <div className="mission-number">
-          MISSÃO <span>{mission.id}</span> DE{' '}
+          MISSÃO{' '}
+          <span>{mission.id}</span> DE{' '}
           {MISSIONS_DATA.length}
         </div>
 
@@ -490,9 +610,9 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
       <div className="secao-missoes__lista">
         {missoes
           .filter(
-            (missao) => !missao.concluida
+            missao => !missao.concluida
           )
-          .map((missao) => (
+          .map(missao => (
             <article
               key={missao.id}
               className="secao-missoes__card"
@@ -502,7 +622,9 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
             >
               <div className="secao-missoes__esquerda">
                 <div>
-                  <h3>{missao.titulo}</h3>
+                  <h3>
+                    {missao.titulo}
+                  </h3>
 
                   <p>
                     {missao.subtitulo}
@@ -537,7 +659,7 @@ export function SecaoMissoes({ missoes, aoConcluirMissao }) {
         >
           <div
             className="secao-missoes__modal"
-            onClick={(evento) =>
+            onClick={evento =>
               evento.stopPropagation()
             }
           >
