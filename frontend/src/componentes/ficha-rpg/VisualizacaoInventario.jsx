@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import './VisualizacaoInventario.css';
 import { requisitarJson } from '../../servicos/clienteApi';
+import './VisualizacaoInventario.css';
 
 const TOTAL_SLOTS = 6;
 
@@ -77,9 +77,8 @@ export function VisualizacaoInventario({ inventario = [] }) {
           {itemsData.map((item, index) => (
             <div
               key={item?.id_item ?? `empty-${index}`}
-              className={`inventory-slot ${
-                item ? 'filled' : 'empty'
-              } ${selectedIndex === index ? 'selected' : ''}`}
+              className={`inventory-slot ${item ? 'filled' : 'empty'
+                } ${selectedIndex === index ? 'selected' : ''}`}
               data-index={index}
               onClick={() => handleSlotClick(index)}
               role="button"
