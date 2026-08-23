@@ -14,19 +14,18 @@ const abas = [
 ];
 
 export function VisualizacaoDesktop({
-  personagem,
+  personagem, 
   dadosTerritorio,
   artefatoAr,
   poderes,
   mpAtual,
   chaveDeCeraUsada,
   carregandoPoderes,
-  aoUsarPoder, // <--- ADICIONADO AQUI
+  aoUsarPoder,
   poderTotal,
   abaAtiva,
   aoSelecionarAba,
   aoAtualizarNome,
-  aoAtualizarClasse,
   aoGanharExperiencia,
   aoAtualizarAtributo,
   aoConcluirMissao,
@@ -38,26 +37,39 @@ export function VisualizacaoDesktop({
   return (
     <section className="visualizacao-desktop">
       <aside className="visualizacao-desktop__lateral">
-        <CabecalhoFicha nome={personagem.nome} classePersonagem={personagem.classe} aoAtualizarNome={aoAtualizarNome} aoAtualizarClasse={aoAtualizarClasse} />
-        <GradeAtributos atributos={personagem.atributos} aoAtualizarAtributo={aoAtualizarAtributo} />
+        <CabecalhoFicha 
+          nome={personagem.nome} 
+          classePersonagem={personagem.classe} 
+          aoAtualizarNome={aoAtualizarNome} 
+        />
+        <GradeAtributos 
+          atributos={personagem.atributos} 
+          aoAtualizarAtributo={aoAtualizarAtributo} 
+        />
       </aside>
 
       <main className="visualizacao-desktop__conteudo">
         <div className="visualizacao-desktop__abas">
           {abas.map((aba) => (
-            <button type="button" key={aba.id} className={abaAtiva === aba.id ? 'ativo' : ''} onClick={() => aoSelecionarAba(aba.id)}>{aba.rotulo}</button>
+            <button 
+              type="button" 
+              key={aba.id} 
+              className={abaAtiva === aba.id ? 'ativo' : ''} 
+              onClick={() => aoSelecionarAba(aba.id)}
+            >
+              {aba.rotulo}
+            </button>
           ))}
         </div>
 
         <div className="visualizacao-desktop__corpo">
-          {/* --- TROCA DE DADOS PARA O TERRITÓRIO --- */}
-
           {abaAtiva === 'poderes' && (
             carregandoPoderes ? (
               <p>Carregando poderes...</p>
             ) : (
               <VisualizacaoPoderes
-                habilidades={poderes}
+                habilidades={poderes} 
+                classePersonagem={personagem.classe}
                 mpAtual={mpAtual}
                 chaveDeCeraUsada={chaveDeCeraUsada}
                 aoUsarPoder={aoUsarPoder}

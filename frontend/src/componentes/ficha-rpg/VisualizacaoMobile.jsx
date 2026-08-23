@@ -9,7 +9,7 @@ import './VisualizacaoMobile.css';
 
 export function VisualizacaoMobile({
   personagem,
-  dadosTerritorio, // <--- ADICIONADO
+  dadosTerritorio,
   artefatoAr,
   poderes,
   mpAtual,
@@ -20,7 +20,6 @@ export function VisualizacaoMobile({
   abaAtiva,
   aoSelecionarAba,
   aoAtualizarNome,
-  aoAtualizarClasse,
   aoGanharExperiencia,
   aoAtualizarAtributo,
   aoConcluirMissao,
@@ -35,11 +34,9 @@ export function VisualizacaoMobile({
         nome={personagem.nome}
         classePersonagem={personagem.classe}
         aoAtualizarNome={aoAtualizarNome}
-        aoAtualizarClasse={aoAtualizarClasse}
       />
 
       <div className="visualizacao-mobile__rolagem">
-        {/* --- PODERES (TROCADO PARA dadosTerritorio.poderes) --- */}
         {abaAtiva === 'poderes' && (
           <>
             <GradeAtributos
@@ -50,7 +47,8 @@ export function VisualizacaoMobile({
               <p>Carregando poderes...</p>
             ) : (
               <VisualizacaoPoderes
-                habilidades={poderes}
+                habilidades={poderes} 
+                classePersonagem={personagem.classe}
                 mpAtual={mpAtual}
                 chaveDeCeraUsada={chaveDeCeraUsada}
                 aoUsarPoder={aoUsarPoder}
@@ -59,7 +57,6 @@ export function VisualizacaoMobile({
           </>
         )}
 
-        {/* --- INVENTÁRIO (TROCADO PARA dadosTerritorio.inventario) --- */}
         {abaAtiva === 'inventario' && (
           <VisualizacaoInventario
             inventario={personagem.inventario}
@@ -67,7 +64,6 @@ export function VisualizacaoMobile({
           />
         )}
 
-        {/* --- MISSÕES (TROCADO PARA dadosTerritorio.missoes) --- */}
         {abaAtiva === 'missoes' && (
           <SecaoMissoes
             missoes={dadosTerritorio.missoes}
@@ -75,7 +71,6 @@ export function VisualizacaoMobile({
           />
         )}
 
-        {/* --- QR CODE (Mantido igual, pois é ação, não dado) --- */}
         {abaAtiva === 'qrcode' && (
           <LeitorQr
             dadosTerritorio={dadosTerritorio}
