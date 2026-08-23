@@ -16,9 +16,8 @@ async function inserirClassesPadrao() {
   const classes = [
     { nome: "Guerreiro", habilidade: "Força bruta", descricao: "Resiste a danos e protege a equipe." },
     { nome: "Mago", habilidade: "Magia ancestral", descricao: "Domina magia e feitiços." },
-    { nome: "Paladino", habilidade: "Proteção", descricao: "Defesa e cura." },
+    { nome: "Clérigo", habilidade: "Proteção", descricao: "Defesa e cura." },
     { nome: "Ladino", habilidade: "Furtividade", descricao: "Ataques rápidos e precisão." },
-    { nome: "Necromante", habilidade: "Sombras", descricao: "Invoca energia das trevas e maldições." },
   ];
 
   for (const item of classes) {

@@ -44,6 +44,11 @@ const PaginaSobre = () => {
                 Equipe
               </button>
             </li>
+            <li>
+              <button className="nav-btn" onClick={() => navegar('/desenvolvedores')}>
+              Desenvolvedores
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
@@ -166,8 +171,8 @@ const PaginaSobre = () => {
           <button className="btn-primary" onClick={() => navegar('/cadastro')}>
             ⚔️ Iniciar Jornada
           </button>
-          <button className="btn-secondary" onClick={() => navegar('/inventario')}>
-            📦 Ver Inventário
+          <button className="btn-secondary" onClick={() => navegar('/desenvolvedores')}>
+            📦 Desenvolvedores
           </button>
         </div>
       </section>

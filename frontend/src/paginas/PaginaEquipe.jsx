@@ -98,61 +98,93 @@ export default function PaginaEquipe() {
     <div className="equipe-pagina">
       <header className="equipe-topo">
         <div>
-          <h1>🛡️ Equipe</h1>
+          <h1>⚔️ Equipe</h1>
           <p>
-            Logado como <strong>{usuario?.nome_usuario}</strong>.
+            Logado como <strong>{usuario?.nome_usuario}</strong>
             {' '}
             {podeJogar ? (
-              <span className="equipe-status ok">Você já está em uma equipe.</span>
+              <span className="equipe-status ok">✔️ Você já está em uma equipe.</span>
             ) : (
-              <span className="equipe-status alerta">Você ainda não entrou em uma equipe.</span>
+              <span className="equipe-status alerta">⚠️ Você ainda não entrou em uma equipe.</span>
             )}
           </p>
         </div>
 
         <div className="equipe-topo-acoes">
-          <button type="button" onClick={() => navegar('/')}>Voltar</button>
-          <button type="button" className="primario" disabled={!podeJogar} onClick={() => navegar('/jogar')}>
-            Jogar
+          <button type="button" onClick={() => navegar('/')} className="btn-secundario">
+            ← Voltar
+          </button>
+          <button type="button" className="btn-primario" disabled={!podeJogar} onClick={() => navegar('/jogar')}>
+            ▶ Jogar
           </button>
         </div>
       </header>
 
-      {mensagem && <div className={`equipe-mensagem ${mensagem.tipo}`}>{mensagem.texto}</div>}
+      {mensagem && (
+        <div className={`equipe-mensagem ${mensagem.tipo}`}>
+          <span className="mensagem-icone">
+            {mensagem.tipo === 'success' ? '✅' : mensagem.tipo === 'error' ? '❌' : 'ℹ️'}
+          </span>
+          {mensagem.texto}
+        </div>
+      )}
 
       {equipe?.id_equipe && (
         <section className="equipe-cartao equipe-cartao--atual">
-          <h2>Equipe atual</h2>
-          <div className="equipe-cartao__linha"><span>Nome:</span> <strong>{equipe.nome_equipe}</strong></div>
-          <div className="equipe-cartao__linha"><span>Token:</span> <code>{equipe.codigo}</code></div>
-          <div className="equipe-cartao__linha"><span>Status:</span> <strong>{equipe.status || 'Jogando'}</strong></div>
+          <h2>🛡️ Equipe atual</h2>
+          <div className="equipe-cartao__linha">
+            <span>Nome:</span> <strong>{equipe.nome_equipe}</strong>
+          </div>
+          <div className="equipe-cartao__linha">
+            <span>Token:</span> <code className="equipe-token">{equipe.codigo}</code>
+          </div>
+          <div className="equipe-cartao__linha">
+            <span>Status:</span> <strong>{equipe.status || 'Jogando'}</strong>
+          </div>
         </section>
       )}
 
       <section className="equipe-abas">
-        <button type="button" className={aba === 'criar' ? 'ativo' : ''} onClick={() => setAba('criar')}>Criar equipe</button>
-        <button type="button" className={aba === 'entrar' ? 'ativo' : ''} onClick={() => setAba('entrar')}>Entrar com token</button>
+        <button
+          type="button"
+          className={aba === 'criar' ? 'ativo' : ''}
+          onClick={() => setAba('criar')}
+        >
+          ✨ Criar equipe
+        </button>
+        <button
+          type="button"
+          className={aba === 'entrar' ? 'ativo' : ''}
+          onClick={() => setAba('entrar')}
+        >
+          🔑 Entrar com token
+        </button>
       </section>
 
       <section className="equipe-formularios">
         <div className="equipe-cartao">
-          <h2>Escolha sua classe</h2>
+          <h2>🧙 Escolha sua classe</h2>
           <select value={idClasse} onChange={(e) => setIdClasse(e.target.value)} disabled={carregando}>
             <option value="">Selecione…</option>
             {classes.map((classe) => (
-              <option key={classe.id_classe} value={classe.id_classe}>{classe.nome_classe}</option>
+              <option key={classe.id_classe} value={classe.id_classe}>
+                {classe.nome_classe}
+              </option>
             ))}
           </select>
           {classeSelecionada && (
-            <p className="equipe-classe-desc">
-              <strong>{classeSelecionada.habilidade}:</strong> {classeSelecionada.descricao_classe}
-            </p>
+            <div className="equipe-classe-desc">
+              <p>
+                <span className="classe-habilidade">⚡ {classeSelecionada.habilidade}</span>
+              </p>
+              <p>{classeSelecionada.descricao_classe}</p>
+            </div>
           )}
         </div>
 
         {aba === 'criar' ? (
           <form className="equipe-cartao" onSubmit={handleCriarEquipe}>
-            <h2>Criar equipe</h2>
+            <h2>🏗️ Criar equipe</h2>
             <label>
               Nome da equipe
               <input
@@ -162,13 +194,13 @@ export default function PaginaEquipe() {
                 disabled={carregando}
               />
             </label>
-            <button type="submit" className="primario" disabled={carregando}>
-              {carregando ? 'Criando…' : 'Criar'}
+            <button type="submit" className="btn-primario" disabled={carregando}>
+              {carregando ? 'Criando…' : 'Criar equipe'}
             </button>
           </form>
         ) : (
           <form className="equipe-cartao" onSubmit={handleEntrarEquipe}>
-            <h2>Entrar com token</h2>
+            <h2>🔐 Entrar com token</h2>
             <label>
               Token da equipe
               <input
@@ -179,7 +211,7 @@ export default function PaginaEquipe() {
                 disabled={carregando}
               />
             </label>
-            <button type="submit" className="primario" disabled={carregando}>
+            <button type="submit" className="btn-primario" disabled={carregando}>
               {carregando ? 'Entrando…' : 'Entrar'}
             </button>
           </form>
@@ -188,4 +220,3 @@ export default function PaginaEquipe() {
     </div>
   );
 }
-

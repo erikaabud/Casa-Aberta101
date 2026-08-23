@@ -32,7 +32,8 @@ export default function PaginaInicial() {
               </>
             )}
             <li><Link to="/sobre">Sobre</Link></li>
-            <Link
+            <li><Link to="/desenvolvedores">Desenvolvedores</Link></li>
+            <li><Link
               to="/jogar"
               className={`botao-rpg ${!estaEmEquipe ? 'desativado' : ''}`}
               aria-disabled={!estaEmEquipe}
@@ -41,8 +42,9 @@ export default function PaginaInicial() {
                 if (!estaEmEquipe) e.preventDefault();
               }}
             >
-              🎮 Jogar
+              Jogar
             </Link>
+            </li>
           </ul>
           <div className="toggle-nav">☯</div>
         </div>
