@@ -5,16 +5,17 @@ function iconePorClasse(classe) {
   if (classe === 'Mago') return '🔥';
   if (classe === 'Clérigo') return '✨';
   if (classe === 'Ladino') return '🗡️';
-
   return '🔑';
 }
 
 export function VisualizacaoPoderes({
   habilidades = [],
+  classePersonagem,
   mpAtual,
   chaveDeCeraUsada,
   aoUsarPoder,
 }) {
+  // ✅ REMOVIDO O FILTRO REDUNDANTE - as habilidades já vêm filtradas por classe
   const habilidadesNormalizadas = Array.isArray(habilidades) ? habilidades : [];
 
   return (
@@ -25,20 +26,29 @@ export function VisualizacaoPoderes({
           const custo = habilidade.custoMP ?? habilidade.custoMana ?? habilidade.custo ?? 0;
           const tipo = habilidade.tipo ?? 'Poder';
           const recarga = habilidade.recarga ?? (habilidade.usoUnico ? 'Uso único' : 'Sem recarga');
-          const descricao = habilidade.descricao ?? `Poder da classe ${habilidade.classe ?? 'aventureiro'}.`;
+          const descricao = habilidade.descricao ?? `Poder da classe ${classePersonagem ?? 'aventureiro'}.`;
 
           return (
-          <article key={habilidade.id} className="visualizacao-poderes__card">
-            <div className="visualizacao-poderes__icone">{iconePorClasse(habilidade.classe)}</div>
-            <div className="visualizacao-poderes__conteudo">
-              <div className="visualizacao-poderes__cabecalho">
-                <h3>{habilidade.nome}</h3>
-                <span>{custo} MP</span>
+            <article key={habilidade.id} className="visualizacao-poderes__card">
+              <div className="visualizacao-poderes__icone">{iconePorClasse(classePersonagem)}</div>
+              <div className="visualizacao-poderes__conteudo">
+                <div className="visualizacao-poderes__cabecalho">
+                  <h3>{habilidade.nome}</h3>
+                  <span>{custo} MP</span>
+                </div>
+                <small>Tipo: {tipo} • Recarga: {recarga}</small>
+                <p>{descricao}</p>
+                {aoUsarPoder && (
+                  <button
+                    onClick={() => aoUsarPoder(habilidade)}
+                    disabled={mpAtual < custo}
+                    className="visualizacao-poderes__botao"
+                  >
+                    Usar Poder
+                  </button>
+                )}
               </div>
-              <small>Tipo: {tipo} • Recarga: {recarga}</small>
-              <p>{descricao}</p>
-            </div>
-          </article>
+            </article>
           );
         })}
       </div>
