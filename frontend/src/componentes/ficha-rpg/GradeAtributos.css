@@ -8,3 +8,4 @@
 .grade-atributos__texto { display:flex; flex-direction:column; gap:.2rem; }
 .grade-atributos__titulo { font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:#d4af37; }
 .grade-atributos__texto strong { color:#f8fafc; font-size:1rem; }
+

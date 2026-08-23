@@ -405,8 +405,6 @@
   letter-spacing: 1px;
   font-size: 0.8rem;
   cursor: default;
-  border: none;
-  background-color: transparent;
 }
 
 .login-link-cadastro:hover {
