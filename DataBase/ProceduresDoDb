@@ -1,30 +1,3 @@
-CREATE PROCEDURE criar_equipe(
-    IN p_nome_equipe VARCHAR(50),
-    IN p_codigo CHAR(6),
-    IN p_id_usuario INT
-)
-BEGIN
-    DECLARE v_id_equipe INT;
-
-    -- Cria a equipe
-    INSERT INTO equipe (nome_equipe, codigo)
-    VALUES (p_nome_equipe, p_codigo);
-
-    -- Obtém o ID da equipe criada
-    SET v_id_equipe = LAST_INSERT_ID();
-
-    -- Adiciona o criador na equipe
-    INSERT INTO equipe_usuario (id_equipe, id_usuario, id_classe)
-    VALUES (v_id_equipe, p_id_usuario, NULL);
-
-    -- Define o criador como líder
-    UPDATE equipe
-    SET id_lider = p_id_usuario
-    WHERE id_equipe = v_id_equipe;
-END //
-
-DELIMITER ;
-
 DELIMITER //
 
 CREATE PROCEDURE criar_equipe(

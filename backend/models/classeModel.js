@@ -2,7 +2,16 @@ const pool = require("../config/db");
 
 async function listarClasses() {
   const [linhas] = await pool.execute(
-    "SELECT id_classe, nome_classe, habilidade, descricao_classe FROM classe ORDER BY id_classe ASC",
+    `SELECT
+        c.id_classe,
+        c.nome_classe,
+        c.descricao_classe,
+        COALESCE(MIN(h.nome_habilidade), 'Sem habilidade cadastrada') AS habilidade
+     FROM classe c
+     LEFT JOIN habilidade h
+       ON h.id_classe = c.id_classe
+     GROUP BY c.id_classe, c.nome_classe, c.descricao_classe
+     ORDER BY c.id_classe ASC`,
   );
   return linhas;
 }
@@ -12,22 +21,5 @@ async function contarClasses() {
   return Number(linhas?.[0]?.total || 0);
 }
 
-async function inserirClassesPadrao() {
-  const classes = [
-    { nome: "Guerreiro", habilidade: "Força bruta", descricao: "Resiste a danos e protege a equipe." },
-    { nome: "Mago", habilidade: "Magia ancestral", descricao: "Domina magia e feitiços." },
-    { nome: "Clérigo", habilidade: "Proteção", descricao: "Defesa e cura." },
-    { nome: "Ladino", habilidade: "Furtividade", descricao: "Ataques rápidos e precisão." },
-  ];
-
-  for (const item of classes) {
-    // IGNORE evita falha caso já exista
-    await pool.execute(
-      "INSERT IGNORE INTO classe (nome_classe, habilidade, descricao_classe) VALUES (?, ?, ?)",
-      [item.nome, item.habilidade, item.descricao],
-    );
-  }
-}
-
-module.exports = { listarClasses, contarClasses, inserirClassesPadrao };
+module.exports = { listarClasses, contarClasses };
 

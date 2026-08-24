@@ -1,9 +1,8 @@
 import './NavegacaoInferior.css';
 const abas = [
-  { id: 'poderes', rotulo: 'Poderes', icone: '⭐' },
   { id: 'inventario', rotulo: 'Inventário', icone: '🎒' },
   { id: 'missoes', rotulo: 'Missões', icone: '📜' },
-  { id: 'qrcode', rotulo: 'QR', icone: '🔳' },
+  { id: 'qrcode', rotulo: 'Leitor', icone: '🔳' },
 ];
 
 export function NavegacaoInferior({ abaAtiva, aoSelecionarAba }) {
