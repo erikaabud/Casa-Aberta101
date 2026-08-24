@@ -1,8 +1,6 @@
 import { CabecalhoFicha } from './CabecalhoFicha';
-import { GradeAtributos } from './GradeAtributos';
 import { SecaoMissoes } from './SecaoMissoes';
 import { VisualizacaoInventario } from './VisualizacaoInventario';
-import { VisualizacaoPoderes } from './VisualizacaoPoderes';
 import { LeitorQr } from './LeitorQr';
 import './VisualizacaoDesktop.css';
 
@@ -17,37 +15,18 @@ export function VisualizacaoDesktop({
   personagem, 
   dadosTerritorio,
   artefatoAr,
-  poderes,
-  mpAtual,
-  chaveDeCeraUsada,
-  carregandoPoderes,
-  aoUsarPoder,
-  poderTotal,
   abaAtiva,
   aoSelecionarAba,
   aoAtualizarNome,
-  aoGanharExperiencia,
-  aoAtualizarAtributo,
+  aoAtualizarClasse,
   aoConcluirMissao,
   aoAlternarEquipamento,
-  aoAbrirModalQr,
-  aoResgatarQr,
   aoColetarArtefatoAr
 }) {
   return (
     <section className="visualizacao-desktop">
       <aside className="visualizacao-desktop__lateral">
-        <CabecalhoFicha 
-          nome={personagem.nome} 
-          classePersonagem={personagem.classe} 
-          aoAtualizarNome={aoAtualizarNome} 
-        />
-        <GradeAtributos 
-          atributos={personagem.atributos} 
-          aoAtualizarAtributo={aoAtualizarAtributo} 
-        />
-      </aside>
-
+        <CabecalhoFicha nome={personagem.nome} classePersonagem={personagem.classe} aoAtualizarNome={aoAtualizarNome} aoAtualizarClasse={aoAtualizarClasse} />
       <main className="visualizacao-desktop__conteudo">
         <div className="visualizacao-desktop__abas">
           {abas.map((aba) => (
@@ -63,19 +42,7 @@ export function VisualizacaoDesktop({
         </div>
 
         <div className="visualizacao-desktop__corpo">
-          {abaAtiva === 'poderes' && (
-            carregandoPoderes ? (
-              <p>Carregando poderes...</p>
-            ) : (
-              <VisualizacaoPoderes
-                habilidades={poderes} 
-                classePersonagem={personagem.classe}
-                mpAtual={mpAtual}
-                chaveDeCeraUsada={chaveDeCeraUsada}
-                aoUsarPoder={aoUsarPoder}
-              />
-            )
-          )}
+          {/* --- TROCA DE DADOS PARA O TERRITÓRIO --- */}
 
           {abaAtiva === 'inventario' && (
             <VisualizacaoInventario
@@ -100,6 +67,7 @@ export function VisualizacaoDesktop({
           )}
         </div>
       </main>
+      </aside>
     </section>
   );
 }

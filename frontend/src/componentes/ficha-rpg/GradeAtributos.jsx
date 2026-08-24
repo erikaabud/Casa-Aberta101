@@ -10,18 +10,7 @@ const definicoes = [
 export function GradeAtributos({ atributos, aoAtualizarAtributo }) {
   return (
     <div className="grade-atributos">
-      {definicoes.map((item) => {
-        const valor = item.valorAtual ? `${atributos[item.valorAtual].toLocaleString('pt-BR')} / ${atributos[item.chave].toLocaleString('pt-BR')}` : atributos[item.chave].toLocaleString('pt-BR');
-        return (
-          <div key={item.chave} className={`grade-atributos__card ${item.classe}`}>
-            <div className="grade-atributos__icone">{item.icone}</div>
-            <div className="grade-atributos__texto">
-              <span className="grade-atributos__titulo">{item.titulo}</span>
-              <strong>{valor}</strong>
-            </div>
-          </div>
-        );
-      })}
+      
     </div>
   );
 }

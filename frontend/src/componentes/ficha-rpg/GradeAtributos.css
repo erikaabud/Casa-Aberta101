@@ -1,11 +1,77 @@
-.grade-atributos { display:grid; gap:.8rem; padding:1rem; }
-.grade-atributos__card { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:.8rem; background:linear-gradient(135deg,rgba(16,24,40,.92),rgba(9,14,24,.98)); border:1px solid rgba(212,175,55,.25); border-radius:.8rem; padding:.9rem 1rem; box-shadow:0 4px 12px rgba(0,0,0,.45); }
-.grade-atributos__card.vida { border-color:rgba(244,63,94,.45); }
-.grade-atributos__card.mana { border-color:rgba(59,130,246,.45); }
-.grade-atributos__card.forca { border-color:rgba(249,115,22,.45); }
-.grade-atributos__card.defesa { border-color:rgba(163,230,53,.45); }
-.grade-atributos__icone { width:2.5rem; height:2.5rem; border-radius:.75rem; display:grid; place-items:center; background:rgba(212,175,55,.12); font-size:1.15rem; }
-.grade-atributos__texto { display:flex; flex-direction:column; gap:.2rem; }
-.grade-atributos__titulo { font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:#d4af37; }
-.grade-atributos__texto strong { color:#f8fafc; font-size:1rem; }
+.grade-atributos {
+    display: grid;
+    gap: .8rem;
+    padding: 1rem;
+}
 
+.grade-atributos__card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: .8rem;
+    background: linear-gradient(135deg, rgba(16, 24, 40, .92), rgba(9, 14, 24, .98));
+    border: 1px solid rgba(212, 175, 55, .25);
+    border-radius: .8rem;
+    padding: .9rem 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .45);
+}
+
+.grade-atributos__card.vida {
+    border-color: rgba(244, 63, 94, .45);
+}
+
+.grade-atributos__card.mana {
+    border-color: rgba(59, 130, 246, .45);
+}
+
+.grade-atributos__card.forca {
+    border-color: rgba(249, 115, 22, .45);
+}
+
+.grade-atributos__card.defesa {
+    border-color: rgba(163, 230, 53, .45);
+}
+
+.grade-atributos__icone {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: .75rem;
+    display: grid;
+    place-items: center;
+    background: rgba(212, 175, 55, .12);
+    font-size: 1.15rem;
+}
+
+.grade-atributos__texto {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+}
+
+.grade-atributos__titulo {
+    font-size: .75rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #d4af37;
+}
+
+.grade-atributos__texto strong {
+    color: #f8fafc;
+    font-size: 1rem;
+}
+
+.grade-atributos__acoes {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.grade-atributos__acoes button {
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: .35rem;
+    border: 1px solid rgba(212, 175, 55, .25);
+    background: rgba(15, 23, 42, .8);
+    color: #fff2bc;
+    cursor: pointer;
+}
