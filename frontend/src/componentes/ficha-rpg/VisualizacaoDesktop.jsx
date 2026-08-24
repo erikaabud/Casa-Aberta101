@@ -12,7 +12,7 @@ const abas = [
 ];
 
 export function VisualizacaoDesktop({
-  personagem,
+  personagem, 
   dadosTerritorio,
   artefatoAr,
   abaAtiva,
@@ -30,7 +30,14 @@ export function VisualizacaoDesktop({
       <main className="visualizacao-desktop__conteudo">
         <div className="visualizacao-desktop__abas">
           {abas.map((aba) => (
-            <button type="button" key={aba.id} className={abaAtiva === aba.id ? 'ativo' : ''} onClick={() => aoSelecionarAba(aba.id)}>{aba.rotulo}</button>
+            <button 
+              type="button" 
+              key={aba.id} 
+              className={abaAtiva === aba.id ? 'ativo' : ''} 
+              onClick={() => aoSelecionarAba(aba.id)}
+            >
+              {aba.rotulo}
+            </button>
           ))}
         </div>
 

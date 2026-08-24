@@ -7,7 +7,7 @@ import './VisualizacaoMobile.css';
 
 export function VisualizacaoMobile({
   personagem,
-  dadosTerritorio, // <--- ADICIONADO
+  dadosTerritorio,
   artefatoAr,
   abaAtiva,
   aoSelecionarAba,
@@ -23,12 +23,10 @@ export function VisualizacaoMobile({
         nome={personagem.nome}
         classePersonagem={personagem.classe}
         aoAtualizarNome={aoAtualizarNome}
-        aoAtualizarClasse={aoAtualizarClasse}
       />
 
       <div className="visualizacao-mobile__rolagem">
 
-        {/* --- INVENTÁRIO (TROCADO PARA dadosTerritorio.inventario) --- */}
         {abaAtiva === 'inventario' && (
           <VisualizacaoInventario
             inventario={personagem.inventario}
@@ -36,7 +34,6 @@ export function VisualizacaoMobile({
           />
         )}
 
-        {/* --- MISSÕES (TROCADO PARA dadosTerritorio.missoes) --- */}
         {abaAtiva === 'missoes' && (
           <SecaoMissoes
             missoes={dadosTerritorio.missoes}
@@ -44,7 +41,6 @@ export function VisualizacaoMobile({
           />
         )}
 
-        {/* --- QR CODE (Mantido igual, pois é ação, não dado) --- */}
         {abaAtiva === 'qrcode' && (
           <LeitorQr
             dadosTerritorio={dadosTerritorio}

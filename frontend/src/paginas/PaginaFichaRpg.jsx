@@ -1,21 +1,23 @@
+// src/paginas/PaginaFichaRpg.jsx
+
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contextos/AuthContext';
 import { personagemInicial } from '../dados/personagemInicial';
-
-import {
-  listarPoderes,
-  buscarEstadoPoderes,
-  usarPoder,
-} from '../servicos/poderesServico';
-
 import { BarraModoDispositivo } from '../componentes/ficha-rpg/BarraModoDispositivo';
 import { VisualizacaoDesktop } from '../componentes/ficha-rpg/VisualizacaoDesktop';
 import { VisualizacaoMobile } from '../componentes/ficha-rpg/VisualizacaoMobile';
 import { ModalQr } from '../componentes/ficha-rpg/ModalQr';
 import { obterArtefatoArPorTerritorio } from '../dados/artefatosAr';
-import { carregarPersonagem, salvarPersonagem, sincronizarPersonagem } from '../servicos/personagemServico';
+import { 
+  carregarPersonagem, 
+  salvarPersonagem, 
+  sincronizarPersonagem, 
+  carregarClasseEscolhida 
+} from '../servicos/personagemServico';
 import './PaginaFichaRpg.css';
 
-// --- DADOS DOS 3 TERRITÓRIOS ---
+// TERRITORIOS DEFINIDOS AQUI - FORA DO COMPONENTE
 const TERRITORIOS = {
   'floresta_sombria': {
     nome: 'Floresta Sombria',
@@ -69,20 +71,20 @@ const TERRITORIOS = {
 };
 
 export default function PaginaFichaRpg() {
-  const [personagem, setPersonagem] = useState(() => carregarPersonagem() || personagemInicial);
+  const navigate = useNavigate();
+  const { equipe } = useAuth();
+
+  const [personagem, setPersonagem] = useState(() => {
+    return carregarPersonagem();
+  });
+
   const [modoDispositivo, setModoDispositivo] = useState('auto');
-
-  const [poderes, setPoderes] = useState([]);
-  const [mpAtual, setMpAtual] = useState(0);
-  const [chaveDeCeraUsada, setChaveDeCeraUsada] = useState(false);
-  const [carregandoPoderes, setCarregandoPoderes] = useState(true);
-
+  const [habilidadesUsadas, setHabilidadesUsadas] = useState([]);
   const [abaAtiva, setAbaAtiva] = useState('poderes');
   const [mostrarModalQr, setMostrarModalQr] = useState(false);
   const [sincronizandoBanco, setSincronizandoBanco] = useState(false);
   const [mensagemSincronizacao, setMensagemSincronizacao] = useState('');
 
-  // --- NOVO: Estado do Território ---
   const [territorioId, setTerritorioId] = useState('floresta_sombria');
   const dadosTerritorio = TERRITORIOS[territorioId];
   const artefatoArAtual = useMemo(
@@ -90,91 +92,106 @@ export default function PaginaFichaRpg() {
     [territorioId, dadosTerritorio]
   );
 
-  useEffect(() => { salvarPersonagem(personagem); }, [personagem]);
-
+  // SALVA PERSONAGEM QUANDO MUDAR
   useEffect(() => {
-    async function carregarPoderes() {
-      try {
-        setCarregandoPoderes(true);
-
-        const lista = await listarPoderes();
-        const estado = await buscarEstadoPoderes();
-
-        setPoderes(lista);
-        setMpAtual(estado.mpAtual);
-        setChaveDeCeraUsada(estado.chaveDeCeraUsada);
-
-      } catch (erro) {
-        console.error('Erro ao carregar poderes:', erro);
-      } finally {
-        setCarregandoPoderes(false);
-      }
+    if (personagem) {
+      salvarPersonagem(personagem);
     }
-
-    carregarPoderes();
-  }, []);
-
-  // FUNÇÃO EXECUTAR PODER
-  async function executarPoder(poder) {
-    try {
-      const resposta = await usarPoder(poder.id);
-
-      setMpAtual(resposta.mpAtual);
-
-      if (poder.nome === 'Chave de Cera') {
-        setChaveDeCeraUsada(true);
-      }
-
-      alert(resposta.mensagem);
-
-    } catch (erro) {
-      console.error('Erro ao usar poder:', erro);
-
-      try {
-        const dados = JSON.parse(erro.message);
-
-        alert(
-          dados.erro ||
-          'Não foi possível utilizar o poder.'
-        );
-
-      } catch {
-        alert('Não foi possível utilizar o poder.');
-      }
-    }
-  }
-
-
-  const poderTotal = useMemo(() => {
-    const bonusItens = personagem.inventario.filter((item) => item.equipado).reduce((acumulador, item) => acumulador + (item.raridade === 'lendario' ? 100 : item.raridade === 'epico' ? 70 : 40), 0);
-    return Math.round(personagem.atributos.forca * 10 + personagem.atributos.defesa * 8 + personagem.atributos.vidaMaxima / 4 + personagem.atributos.manaMaxima / 4 + personagem.nivel * 80 + bonusItens);
   }, [personagem]);
 
-  function atualizarNome(novoNome) { setPersonagem((personagemAtual) => ({ ...personagemAtual, nome: novoNome })); }
+  // SINCRONIZA A CLASSE AO CARREGAR A PÁGINA
+  useEffect(() => {
+    const classeEscolhida = carregarClasseEscolhida();
 
-  function atualizarClasse(novaClasse) {
+    if (classeEscolhida && personagem && classeEscolhida !== personagem.classe) {
+      const template = personagemInicial[classeEscolhida];
+      if (template) {
+        setPersonagem({
+          ...template,
+          nome: personagem.nome,
+        });
+      }
+    }
+  }, []);
+
+  const poderesDaClasse = personagem?.habilidades || [];
+
+  function executarPoder(poder) {
+    if (!personagem) return;
+    
+    const custo = poder.custoMana ?? 0;
+    const ehUsoUnico = poder.recarga === 'Uso único';
+
+    if (ehUsoUnico && habilidadesUsadas.includes(poder.id)) {
+      alert('Este poder já foi utilizado e não pode ser usado novamente.');
+      return;
+    }
+
+    if (personagem.atributos.manaAtual < custo) {
+      alert('Mana insuficiente para usar esse poder.');
+      return;
+    }
+
     setPersonagem((personagemAtual) => ({
       ...personagemAtual,
-      classe: novaClasse,
       atributos: {
         ...personagemAtual.atributos,
-        forca: novaClasse === 'Guerreiro' ? personagemAtual.atributos.forca + 2 : personagemAtual.atributos.forca,
-        defesa: novaClasse === 'Paladino' ? personagemAtual.atributos.defesa + 2 : personagemAtual.atributos.defesa,
-        manaMaxima: ['Mago', 'Necromante'].includes(novaClasse) ? personagemAtual.atributos.manaMaxima + 40 : personagemAtual.atributos.manaMaxima,
+        manaAtual: Math.max(0, personagemAtual.atributos.manaAtual - custo),
       },
+    }));
+
+    if (ehUsoUnico) {
+      setHabilidadesUsadas((atual) => [...atual, poder.id]);
+    }
+
+    alert(`Você usou ${poder.nome}!`);
+  }
+
+  const poderTotal = useMemo(() => {
+    if (!personagem) return 0;
+    
+    const bonusItens = personagem.inventario
+      .filter((item) => item.equipado)
+      .reduce((acumulador, item) => acumulador + (item.raridade === 'lendario' ? 100 : item.raridade === 'epico' ? 70 : 40), 0);
+    return Math.round(
+      personagem.atributos.forca * 10 +
+      personagem.atributos.defesa * 8 +
+      personagem.atributos.vidaMaxima / 4 +
+      personagem.atributos.manaMaxima / 4 +
+      personagem.nivel * 80 +
+      bonusItens
+    );
+  }, [personagem]);
+
+  function atualizarNome(novoNome) {
+    if (!personagem) return;
+    setPersonagem((personagemAtual) => ({ ...personagemAtual, nome: novoNome }));
+  }
+
+  function atualizarClasse(novaClasse) {
+    const template = personagemInicial[novaClasse];
+    if (!template) return;
+
+    setPersonagem((personagemAtual) => ({
+      ...template,
+      nome: personagemAtual.nome,
     }));
   }
 
   function ganharExperiencia() {
+    if (!personagem) return;
+    
     setPersonagem((personagemAtual) => {
       let experienciaAtual = personagemAtual.experienciaAtual + 500;
       let nivel = personagemAtual.nivel;
       let experienciaMaxima = personagemAtual.experienciaMaxima;
+
       if (experienciaAtual >= personagemAtual.experienciaMaxima) {
         experienciaAtual -= personagemAtual.experienciaMaxima;
         nivel += 1;
         experienciaMaxima = Math.round(personagemAtual.experienciaMaxima * 1.2);
       }
+
       return {
         ...personagemAtual,
         nivel,
@@ -194,28 +211,57 @@ export default function PaginaFichaRpg() {
   }
 
   function atualizarAtributo(chave, delta) {
+    if (!personagem) return;
+    
     setPersonagem((personagemAtual) => {
-      const atributosAtualizados = { ...personagemAtual.atributos, [chave]: Math.max(10, personagemAtual.atributos[chave] + delta) };
-      if (chave === 'vidaMaxima') atributosAtualizados.vidaAtual = Math.min(personagemAtual.atributos.vidaAtual + delta, atributosAtualizados.vidaMaxima);
-      if (chave === 'manaMaxima') atributosAtualizados.manaAtual = Math.min(personagemAtual.atributos.manaAtual + delta, atributosAtualizados.manaMaxima);
+      const atributosAtualizados = {
+        ...personagemAtual.atributos,
+        [chave]: Math.max(10, personagemAtual.atributos[chave] + delta)
+      };
+
+      if (chave === 'vidaMaxima') {
+        atributosAtualizados.vidaAtual = Math.min(
+          personagemAtual.atributos.vidaAtual + delta,
+          atributosAtualizados.vidaMaxima
+        );
+      }
+
+      if (chave === 'manaMaxima') {
+        atributosAtualizados.manaAtual = Math.min(
+          personagemAtual.atributos.manaAtual + delta,
+          atributosAtualizados.manaMaxima
+        );
+      }
+
       return { ...personagemAtual, atributos: atributosAtualizados };
     });
   }
 
   function alternarEquipamento(idItem) {
-    setPersonagem((personagemAtual) => ({ ...personagemAtual, inventario: personagemAtual.inventario.map((item) => item.id === idItem ? { ...item, equipado: !item.equipado } : item) }));
+    if (!personagem) return;
+    
+    setPersonagem((personagemAtual) => ({
+      ...personagemAtual,
+      inventario: personagemAtual.inventario.map((item) =>
+        item.id === idItem ? { ...item, equipado: !item.equipado } : item
+      )
+    }));
   }
 
   function concluirMissao(idMissao) {
+    if (!personagem) return;
+    
     setPersonagem((personagemAtual) => ({
       ...personagemAtual,
       ouro: personagemAtual.ouro + (personagemAtual.missoes.find((missao) => missao.id === idMissao)?.recompensaOuro || 0),
-      missoes: personagemAtual.missoes.map((missao) => missao.id === idMissao ? { ...missao, concluida: true } : missao),
+      missoes: personagemAtual.missoes.map((missao) =>
+        missao.id === idMissao ? { ...missao, concluida: true } : missao
+      ),
     }));
   }
 
   function coletarArtefatoAr(artefatoAr) {
-    if (!artefatoAr?.item) {
+    if (!artefatoAr?.item || !personagem) {
       return false;
     }
 
@@ -262,6 +308,8 @@ export default function PaginaFichaRpg() {
   }
 
   async function sincronizarComBanco() {
+    if (!personagem) return;
+    
     setSincronizandoBanco(true);
     try {
       const resposta = await sincronizarPersonagem(personagem);
@@ -271,6 +319,14 @@ export default function PaginaFichaRpg() {
     } finally {
       setSincronizandoBanco(false);
     }
+  }
+
+  if (!personagem) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <p>Carregando personagem...</p>
+      </div>
+    );
   }
 
   return (
@@ -284,34 +340,25 @@ export default function PaginaFichaRpg() {
       {mensagemSincronizacao && <div className="pagina-ficha-rpg__mensagem">{mensagemSincronizacao}</div>}
 
       <div className="pagina-ficha-rpg__conteudo">
-
-        {/* CABEÇALHO DO TERRITÓRIO */}
         <div className="territorio-cabecalho">
           <h1>{dadosTerritorio.icone} {dadosTerritorio.nome}</h1>
           <p>Explore as habilidades e missões disponíveis nesta região.</p>
         </div>
 
-        {/* 
-           ATENÇÃO: 
-           Estou passando 'dadosTerritorio' para as Visualizações. 
-           Você PRECISA ir no arquivo VisualizacaoDesktop.jsx e VisualizacaoMobile.jsx 
-           e receber essa prop nas funções, senão nada muda na tela.
-        */}
         {modoDispositivo === 'mobile' && (
           <VisualizacaoMobile
             personagem={personagem}
-            dadosTerritorio={dadosTerritorio} // <-- NOVO
+            dadosTerritorio={dadosTerritorio}
             artefatoAr={artefatoArAtual}
-            poderes={poderes}
-            mpAtual={mpAtual}
-            chaveDeCeraUsada={chaveDeCeraUsada}
-            carregandoPoderes={carregandoPoderes}
+            poderes={poderesDaClasse}
+            mpAtual={personagem?.atributos?.manaAtual || 0}
+            chaveDeCeraUsada={habilidadesUsadas.length > 0}
+            carregandoPoderes={false}
             aoUsarPoder={executarPoder}
             poderTotal={poderTotal}
             abaAtiva={abaAtiva}
             aoSelecionarAba={setAbaAtiva}
             aoAtualizarNome={atualizarNome}
-            aoAtualizarClasse={atualizarClasse}
             aoGanharExperiencia={ganharExperiencia}
             aoAtualizarAtributo={atualizarAtributo}
             aoConcluirMissao={concluirMissao}
@@ -325,18 +372,17 @@ export default function PaginaFichaRpg() {
         {modoDispositivo === 'desktop' && (
           <VisualizacaoDesktop
             personagem={personagem}
-            dadosTerritorio={dadosTerritorio} // <-- NOVO
+            dadosTerritorio={dadosTerritorio}
             artefatoAr={artefatoArAtual}
-            poderes={poderes}
-            mpAtual={mpAtual}
-            chaveDeCeraUsada={chaveDeCeraUsada}
-            carregandoPoderes={carregandoPoderes}
+            poderes={poderesDaClasse}
+            mpAtual={personagem?.atributos?.manaAtual || 0}
+            chaveDeCeraUsada={habilidadesUsadas.length > 0}
+            carregandoPoderes={false}
             aoUsarPoder={executarPoder}
             poderTotal={poderTotal}
             abaAtiva={abaAtiva}
             aoSelecionarAba={setAbaAtiva}
             aoAtualizarNome={atualizarNome}
-            aoAtualizarClasse={atualizarClasse}
             aoGanharExperiencia={ganharExperiencia}
             aoAtualizarAtributo={atualizarAtributo}
             aoConcluirMissao={concluirMissao}
@@ -352,18 +398,17 @@ export default function PaginaFichaRpg() {
             <div className="pagina-ficha-rpg__somente-mobile">
               <VisualizacaoMobile
                 personagem={personagem}
-                dadosTerritorio={dadosTerritorio} // <-- NOVO
+                dadosTerritorio={dadosTerritorio}
                 artefatoAr={artefatoArAtual}
-                poderes={poderes}
-                mpAtual={mpAtual}
-                chaveDeCeraUsada={chaveDeCeraUsada}
-                carregandoPoderes={carregandoPoderes}
+                poderes={poderesDaClasse}
+                mpAtual={personagem?.atributos?.manaAtual || 0}
+                chaveDeCeraUsada={habilidadesUsadas.length > 0}
+                carregandoPoderes={false}
                 aoUsarPoder={executarPoder}
                 poderTotal={poderTotal}
                 abaAtiva={abaAtiva}
                 aoSelecionarAba={setAbaAtiva}
                 aoAtualizarNome={atualizarNome}
-                aoAtualizarClasse={atualizarClasse}
                 aoGanharExperiencia={ganharExperiencia}
                 aoAtualizarAtributo={atualizarAtributo}
                 aoConcluirMissao={concluirMissao}
@@ -376,18 +421,17 @@ export default function PaginaFichaRpg() {
             <div className="pagina-ficha-rpg__somente-desktop">
               <VisualizacaoDesktop
                 personagem={personagem}
-                dadosTerritorio={dadosTerritorio} // <-- NOVO
+                dadosTerritorio={dadosTerritorio}
                 artefatoAr={artefatoArAtual}
-                poderes={poderes}
-                mpAtual={mpAtual}
-                chaveDeCeraUsada={chaveDeCeraUsada}
-                carregandoPoderes={carregandoPoderes}
+                poderes={poderesDaClasse}
+                mpAtual={personagem?.atributos?.manaAtual || 0}
+                chaveDeCeraUsada={habilidadesUsadas.length > 0}
+                carregandoPoderes={false}
                 aoUsarPoder={executarPoder}
                 poderTotal={poderTotal}
                 abaAtiva={abaAtiva}
                 aoSelecionarAba={setAbaAtiva}
                 aoAtualizarNome={atualizarNome}
-                aoAtualizarClasse={atualizarClasse}
                 aoGanharExperiencia={ganharExperiencia}
                 aoAtualizarAtributo={atualizarAtributo}
                 aoConcluirMissao={concluirMissao}
@@ -401,7 +445,13 @@ export default function PaginaFichaRpg() {
         )}
       </div>
 
-      {mostrarModalQr && <ModalQr personagem={personagem} poderTotal={poderTotal} aoFechar={() => setMostrarModalQr(false)} />}
+      {mostrarModalQr && (
+        <ModalQr
+          personagem={personagem}
+          poderTotal={poderTotal}
+          aoFechar={() => setMostrarModalQr(false)}
+        />
+      )}
     </div>
   );
 }
