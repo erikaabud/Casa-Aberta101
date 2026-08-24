@@ -32,7 +32,7 @@ CREATE TABLE equipe (
     id_lider INT NULL
 );
 
-CREATE TABLE integrante (
+CREATE TABLE equipe_usuario (
     id_equipe INT NOT NULL,
     id_usuario INT NOT NULL,
     id_classe INT NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE item (
     FOREIGN KEY (id_classe) REFERENCES classe(id_classe) ON DELETE CASCADE
 );
 
-CREATE TABLE inventario (
+CREATE TABLE equipe_item (
     id_usuario INT NOT NULL,
     id_item INT NOT NULL,
     estado_item ENUM('Normal', 'Amaldiçoado') NOT NULL DEFAULT 'Normal',
