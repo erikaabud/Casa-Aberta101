@@ -1,9 +1,7 @@
 import { CabecalhoFicha } from './CabecalhoFicha';
-import { GradeAtributos } from './GradeAtributos';
 import { NavegacaoInferior } from './NavegacaoInferior';
 import { SecaoMissoes } from './SecaoMissoes';
 import { VisualizacaoInventario } from './VisualizacaoInventario';
-import { VisualizacaoPoderes } from './VisualizacaoPoderes';
 import { LeitorQr } from './LeitorQr';
 import './VisualizacaoMobile.css';
 
@@ -11,22 +9,12 @@ export function VisualizacaoMobile({
   personagem,
   dadosTerritorio, // <--- ADICIONADO
   artefatoAr,
-  poderes,
-  mpAtual,
-  chaveDeCeraUsada,
-  carregandoPoderes,
-  aoUsarPoder,
-  poderTotal,
   abaAtiva,
   aoSelecionarAba,
   aoAtualizarNome,
   aoAtualizarClasse,
-  aoGanharExperiencia,
-  aoAtualizarAtributo,
   aoConcluirMissao,
   aoAlternarEquipamento,
-  aoAbrirModalQr,
-  aoResgatarQr,
   aoColetarArtefatoAr
 }) {
   return (
@@ -39,25 +27,6 @@ export function VisualizacaoMobile({
       />
 
       <div className="visualizacao-mobile__rolagem">
-        {/* --- PODERES (TROCADO PARA dadosTerritorio.poderes) --- */}
-        {abaAtiva === 'poderes' && (
-          <>
-            <GradeAtributos
-              atributos={personagem.atributos}
-              aoAtualizarAtributo={aoAtualizarAtributo}
-            />
-            {carregandoPoderes ? (
-              <p>Carregando poderes...</p>
-            ) : (
-              <VisualizacaoPoderes
-                habilidades={poderes}
-                mpAtual={mpAtual}
-                chaveDeCeraUsada={chaveDeCeraUsada}
-                aoUsarPoder={aoUsarPoder}
-              />
-            )}
-          </>
-        )}
 
         {/* --- INVENTÁRIO (TROCADO PARA dadosTerritorio.inventario) --- */}
         {abaAtiva === 'inventario' && (

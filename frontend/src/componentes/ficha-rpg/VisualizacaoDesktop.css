@@ -1,7 +1,7 @@
 /* Estrutura Principal */
 .visualizacao-desktop {
   display: grid;
-  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  grid-template-columns: minmax(780px, 980px) minmax(0, 1fr);
   gap: 1.25rem;
   width: 100%;
   align-items: start;
@@ -23,6 +23,7 @@
   flex-wrap: wrap;
   padding: 1rem;
   border-bottom: 1px solid rgba(212, 175, 55, .16);
+  z-index: 1;
 }
 
 .visualizacao-desktop__abas button {
@@ -34,6 +35,8 @@
   cursor: pointer;
   transition: 0.2s ease;
 }
+
+
 
 .visualizacao-desktop__abas button:hover {
   background: #2b1f12;
