@@ -16,12 +16,18 @@ export async function requisitarJson(caminho, configuracao = {}) {
     let detalhe = '';
     try {
       const texto = await resposta.text();
-      detalhe = texto || '';
+      if (texto) {
+        try {
+          const json = JSON.parse(texto);
+          detalhe = json?.erro || json?.message || texto;
+        } catch {
+          detalhe = texto;
+        }
+      }
     } catch {
       detalhe = '';
     }
 
-    // Mantém o erro com uma mensagem melhor (o frontend exibe).
     throw new Error(detalhe || `Falha na requisição: ${resposta.status}`);
   }
 

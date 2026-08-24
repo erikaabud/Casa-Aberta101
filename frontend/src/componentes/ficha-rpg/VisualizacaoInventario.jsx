@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { requisitarJson } from '../../servicos/clienteApi';
+import { useMemo, useState } from 'react';
 import './VisualizacaoInventario.css';
 
 const TOTAL_SLOTS = 6;
@@ -16,6 +15,8 @@ function normalizarItem(item) {
       item.descricao ||
       'Este item ainda não possui uma descrição cadastrada.',
     quantidade: item.quantidade ?? 1,
+    regiao: item.nome_regiao || item.regiao || '',
+    missao: item.nome_missao || item.missao || '',
     estado_item:
       item.estado_item ||
       (item.equipado ? 'Equipado' : 'Disponível'),
@@ -23,33 +24,17 @@ function normalizarItem(item) {
 }
 
 export function VisualizacaoInventario({ inventario = [] }) {
-  const [itens, setItens] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
 
-  useEffect(() => {
-    if (Array.isArray(inventario) && inventario.length > 0) {
-      return undefined;
-    }
+  const origemItens = Array.isArray(inventario) ? inventario : [];
 
-    async function carregarInventario() {
-      try {
-        const resposta = await requisitarJson('/itens/minha-equipe');
-
-        setItens(resposta.itens || []);
-      } catch (erro) {
-        console.error('Erro ao carregar inventário:', erro);
-      }
-    }
-
-    carregarInventario();
-  }, [inventario]);
-
-  const origemItens =
-    Array.isArray(inventario) && inventario.length > 0 ? inventario : itens;
-
-  const itemsData = Array.from(
-    { length: TOTAL_SLOTS },
-    (_, index) => normalizarItem(origemItens[index])
+  const itemsData = useMemo(
+    () =>
+      Array.from(
+        { length: TOTAL_SLOTS },
+        (_, index) => normalizarItem(origemItens[index]),
+      ),
+    [origemItens],
   );
 
   const selectedItem =
@@ -119,6 +104,18 @@ export function VisualizacaoInventario({ inventario = [] }) {
 
               <p>{selectedItem.descricao}</p>
 
+              {selectedItem.missao && (
+                <span>
+                  Missão: {selectedItem.missao}
+                </span>
+              )}
+
+              {selectedItem.regiao && (
+                <span>
+                  Região: {selectedItem.regiao}
+                </span>
+              )}
+
               <span>
                 Estado: {selectedItem.estado_item}
               </span>
@@ -129,7 +126,9 @@ export function VisualizacaoInventario({ inventario = [] }) {
             </>
           ) : (
             <p className="empty-message">
-              ⚔️ Selecione um item para ver seus detalhes
+              {origemItens.length
+                ? '⚔️ Selecione um item para ver seus detalhes'
+                : '⚔️ Nenhum item foi coletado ainda.'}
             </p>
           )}
         </div>

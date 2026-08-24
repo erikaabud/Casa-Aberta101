@@ -1,50 +1,35 @@
 import { CabecalhoFicha } from './CabecalhoFicha';
-import { GradeAtributos } from './GradeAtributos';
 import { SecaoMissoes } from './SecaoMissoes';
 import { VisualizacaoInventario } from './VisualizacaoInventario';
-import { VisualizacaoPoderes } from './VisualizacaoPoderes';
-import { LeitorQr } from './LeitorQr';
 import './VisualizacaoDesktop.css';
+import './VisualizacaoPoderes.css';
 
 const abas = [
-  { id: 'poderes', rotulo: 'Poderes' },
-  { id: 'inventario', rotulo: 'Inventário' },
   { id: 'missoes', rotulo: 'Missões' },
+  { id: 'inventario', rotulo: 'Inventário' },
   { id: 'qrcode', rotulo: 'QR Code' },
 ];
 
 export function VisualizacaoDesktop({
-  personagem, 
+  personagem,
+  equipe,
+  membros,
   dadosTerritorio,
-  artefatoAr,
-  poderes,
-  mpAtual,
-  chaveDeCeraUsada,
-  carregandoPoderes,
-  aoUsarPoder,
-  poderTotal,
+  missaoSelecionadaId,
   abaAtiva,
   aoSelecionarAba,
-  aoAtualizarNome,
-  aoGanharExperiencia,
-  aoAtualizarAtributo,
-  aoConcluirMissao,
-  aoAlternarEquipamento,
+  aoSelecionarMissao,
   aoAbrirModalQr,
-  aoResgatarQr,
-  aoColetarArtefatoAr
+  inventario,
 }) {
   return (
     <section className="visualizacao-desktop">
       <aside className="visualizacao-desktop__lateral">
-        <CabecalhoFicha 
-          nome={personagem.nome} 
-          classePersonagem={personagem.classe} 
-          aoAtualizarNome={aoAtualizarNome} 
-        />
-        <GradeAtributos 
-          atributos={personagem.atributos} 
-          aoAtualizarAtributo={aoAtualizarAtributo} 
+        <CabecalhoFicha
+          nome={personagem.nome}
+          classePersonagem={personagem.classe}
+          equipe={equipe}
+          membros={membros}
         />
       </aside>
 
@@ -63,40 +48,31 @@ export function VisualizacaoDesktop({
         </div>
 
         <div className="visualizacao-desktop__corpo">
-          {abaAtiva === 'poderes' && (
-            carregandoPoderes ? (
-              <p>Carregando poderes...</p>
-            ) : (
-              <VisualizacaoPoderes
-                habilidades={poderes} 
-                classePersonagem={personagem.classe}
-                mpAtual={mpAtual}
-                chaveDeCeraUsada={chaveDeCeraUsada}
-                aoUsarPoder={aoUsarPoder}
-              />
-            )
+          {abaAtiva === 'missoes' && (
+            <SecaoMissoes
+              missoes={dadosTerritorio?.missoes || []}
+              missaoSelecionadaId={missaoSelecionadaId}
+              aoSelecionarMissao={aoSelecionarMissao}
+            />
           )}
 
           {abaAtiva === 'inventario' && (
             <VisualizacaoInventario
-              inventario={personagem.inventario}
-              aoAlternarEquipamento={aoAlternarEquipamento}
-            />
-          )}
-
-          {abaAtiva === 'missoes' && (
-            <SecaoMissoes
-              missoes={dadosTerritorio.missoes}
-              aoConcluirMissao={aoConcluirMissao}
+              inventario={inventario}
             />
           )}
 
           {abaAtiva === 'qrcode' && (
-            <LeitorQr
-              dadosTerritorio={dadosTerritorio}
-              artefatoAr={artefatoAr}
-              aoColetarArtefatoAr={aoColetarArtefatoAr}
-            />
+            <section className="visualizacao-poderes">
+              <h2>Leitor do marcador</h2>
+              <p>
+                O leitor foi movido para um modal dedicado. Abra o modal,
+                mostre o marcador `hiro` e colete o item atual da missão.
+              </p>
+              <button type="button" className="visualizacao-poderes__botao" onClick={aoAbrirModalQr}>
+                Abrir leitor QR
+              </button>
+            </section>
           )}
         </div>
       </main>

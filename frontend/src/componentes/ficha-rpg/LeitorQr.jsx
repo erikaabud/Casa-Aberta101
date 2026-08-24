@@ -80,93 +80,68 @@ function useMotorAr() {
   return estado;
 }
 
-function ModeloArFallback({ fallback }) {
-  const configuracao = fallback || {};
-  const primitivo = configuracao.primitivo || 'box';
-
-  if (primitivo === 'octahedron') {
-    return (
-      <a-entity
-        geometry="primitive: octahedron; radius: 0.42"
-        material={`color: ${configuracao.cor || '#34d399'}; emissive: ${configuracao.emissive || '#14532d'}; metalness: 0.35; roughness: 0.25;`}
-        position={configuracao.posicao || '0 0.35 0'}
-        rotation={configuracao.rotacao || '0 45 0'}
-        scale={configuracao.escala || '0.45 0.45 0.45'}
-        animation="property: rotation; to: 0 405 0; loop: true; dur: 8000; easing: linear"
-      />
-    );
-  }
-
-  if (primitivo === 'dodecahedron') {
-    return (
-      <a-entity
-        geometry="primitive: dodecahedron; radius: 0.38"
-        material={`color: ${configuracao.cor || '#f59e0b'}; emissive: ${configuracao.emissive || '#7c2d12'}; metalness: 0.4; roughness: 0.2;`}
-        position={configuracao.posicao || '0 0.4 0'}
-        rotation={configuracao.rotacao || '0 0 0'}
-        scale={configuracao.escala || '0.4 0.4 0.4'}
-        animation="property: rotation; to: 360 360 0; loop: true; dur: 6000; easing: linear"
-      />
-    );
-  }
-
-  if (primitivo === 'icosahedron') {
-    return (
-      <a-entity
-        geometry="primitive: icosahedron; radius: 0.42"
-        material={`color: ${configuracao.cor || '#7dd3fc'}; emissive: ${configuracao.emissive || '#0c4a6e'}; metalness: 0.28; roughness: 0.24;`}
-        position={configuracao.posicao || '0 0.38 0'}
-        rotation={configuracao.rotacao || '0 0 0'}
-        scale={configuracao.escala || '0.46 0.46 0.46'}
-        animation="property: rotation; to: 0 360 360; loop: true; dur: 9000; easing: linear"
-      />
-    );
-  }
-
+function ModeloArFallback() {
   return (
-    <a-entity
-      geometry="primitive: box; depth: 0.5; height: 0.5; width: 0.5"
-      material={`color: ${configuracao.cor || '#d4af37'}; emissive: ${configuracao.emissive || '#5b4400'}; metalness: 0.32; roughness: 0.28;`}
-      position={configuracao.posicao || '0 0.35 0'}
-      rotation={configuracao.rotacao || '0 45 0'}
-      scale={configuracao.escala || '0.45 0.45 0.45'}
-      animation="property: rotation; to: 0 405 0; loop: true; dur: 7000; easing: linear"
-    />
+    <>
+      <a-entity
+        geometry="primitive: box; depth: 0.45; height: 0.45; width: 0.45"
+        material="color: #d4af37; emissive: #5b4400; metalness: 0.32; roughness: 0.28;"
+        position="0 0.35 0"
+        rotation="0 45 0"
+        animation="property: rotation; to: 0 405 0; loop: true; dur: 7000; easing: linear"
+      />
+      <a-ring
+        position="0 0.35 0"
+        rotation="-90 0 0"
+        radius-inner="0.48"
+        radius-outer="0.65"
+        color="#93c5fd"
+      />
+    </>
   );
 }
 
-function ConteudoMarcador({ artefato }) {
-  if (artefato?.modelo?.caminho) {
-    return (
-      <a-entity
-        gltf-model={`url(${artefato.modelo.caminho})`}
-        position={artefato.modelo.posicao || '0 0.35 0'}
-        rotation={artefato.modelo.rotacao || '0 0 0'}
-        scale={artefato.modelo.escala || '0.45 0.45 0.45'}
-        animation="property: rotation; to: 0 360 0; loop: true; dur: 9000; easing: linear"
-      />
-    );
-  }
-
-  return <ModeloArFallback fallback={artefato?.fallback} />;
+function ConteudoMarcador() {
+  return <ModeloArFallback />;
 }
 
 export function LeitorQr({
-  dadosTerritorio,
-  artefatoAr,
-  aoColetarArtefatoAr,
+  regiao,
+  missao,
+  item,
+  aoColetar,
 }) {
   const { pronto, erro } = useMotorAr();
   const referenciaCena = useRef(null);
+  const marcadorRef = useRef(null);
   const [erroCamera, setErroCamera] = useState(null);
   const [cameraAtiva, setCameraAtiva] = useState(false);
-  const [coletadoNoPainel, setColetadoNoPainel] = useState(false);
+  const [marcadorDetectado, setMarcadorDetectado] = useState(false);
+  const [coletando, setColetando] = useState(false);
+  const [mensagem, setMensagem] = useState('');
 
   useEffect(() => {
-    setColetadoNoPainel(false);
     setErroCamera(null);
     setCameraAtiva(false);
-  }, [dadosTerritorio?.nome, artefatoAr?.item?.chave]);
+    setMarcadorDetectado(false);
+    setMensagem('');
+  }, [regiao?.id_regiao, missao?.id_missao, item?.id_item]);
+
+  useEffect(() => {
+    const marcador = marcadorRef.current;
+    if (!marcador) return undefined;
+
+    const aoEncontrar = () => setMarcadorDetectado(true);
+    const aoPerder = () => setMarcadorDetectado(false);
+
+    marcador.addEventListener('markerFound', aoEncontrar);
+    marcador.addEventListener('markerLost', aoPerder);
+
+    return () => {
+      marcador.removeEventListener('markerFound', aoEncontrar);
+      marcador.removeEventListener('markerLost', aoPerder);
+    };
+  }, [pronto, item?.id_item]);
 
   function encaixarElementosArNoQuadro() {
     const container = referenciaCena.current;
@@ -336,7 +311,7 @@ export function LeitorQr({
       observador.disconnect();
       window.clearInterval(intervalo);
     };
-  }, [pronto, dadosTerritorio?.nome]);
+  }, [pronto, regiao?.id_regiao]);
 
   useEffect(() => {
     return () => {
@@ -356,27 +331,31 @@ export function LeitorQr({
     };
   }, []);
 
-  const missaoRelacionada = useMemo(() => {
-    const nomeMissao =
-      artefatoAr?.missaoVinculada?.nome || artefatoAr?.missaoVinculada?.titulo;
+  const missaoRelacionada = useMemo(
+    () => missao?.nome_missao || 'Missão não selecionada',
+    [missao],
+  );
 
-    return nomeMissao || 'Missão não vinculada';
-  }, [artefatoAr]);
+  async function lidarComColeta() {
+    if (!item || !marcadorDetectado || coletando) return;
 
-  function lidarComColeta() {
-    const itemFoiAdicionado = aoColetarArtefatoAr?.(artefatoAr);
-
-    if (itemFoiAdicionado !== false) {
-      setColetadoNoPainel(true);
+    setColetando(true);
+    try {
+      const resposta = await aoColetar?.(item);
+      setMensagem(resposta?.mensagem || `Item "${item.nome_item}" coletado com sucesso.`);
+    } catch (erroAtual) {
+      setMensagem(erroAtual?.message || 'Não foi possível coletar o item agora.');
+    } finally {
+      setColetando(false);
     }
   }
 
-  if (!dadosTerritorio || !artefatoAr) {
+  if (!regiao || !missao) {
     return (
       <section className="leitor-qr">
         <div className="leitor-qr__caixa">
           <p className="leitor-qr__status">
-            Nenhum artefato de realidade aumentada foi configurado para este território.
+            Selecione uma missão para abrir o leitor e preparar a coleta.
           </p>
         </div>
       </section>
@@ -387,9 +366,12 @@ export function LeitorQr({
     <section className="leitor-qr">
       <div className="leitor-qr__caixa">
         <div className="leitor-qr__cabecalho">
-          <span className="leitor-qr__territorio">{dadosTerritorio.icone} {dadosTerritorio.nome}</span>
-          <h3>{artefatoAr.titulo}</h3>
-          <p>{artefatoAr.descricao}</p>
+          <span className="leitor-qr__territorio">{regiao.nome_regiao}</span>
+          <h3>{item?.nome_item || 'Sem item pendente'}</h3>
+          <p>
+            A câmera do modal vai procurar o marcador `hiro`. Quando ele aparecer,
+            o objeto 3D será projetado e o botão de coleta será liberado.
+          </p>
         </div>
 
         <div className="leitor-qr__viewport">
@@ -402,8 +384,8 @@ export function LeitorQr({
                 vr-mode-ui="enabled: false"
                 device-orientation-permission-ui="enabled: false"
               >
-                <a-marker preset="hiro">
-                  <ConteudoMarcador artefato={artefatoAr} />
+                <a-marker ref={marcadorRef} preset="hiro">
+                  <ConteudoMarcador />
                 </a-marker>
                 <a-entity camera />
               </a-scene>
@@ -420,8 +402,7 @@ export function LeitorQr({
 
         <div className="leitor-qr__info">
           <p>
-            Aponte a câmera para o marcador `hiro` para visualizar o objeto 3D
-            do território em realidade aumentada.
+            Aponte a câmera para o marcador `hiro` para visualizar o objeto 3D de teste.
           </p>
           {!cameraAtiva && pronto && !erroCamera && (
             <p className="leitor-qr__status">
@@ -432,14 +413,17 @@ export function LeitorQr({
             Missão vinculada: <strong>{missaoRelacionada}</strong>
           </p>
           <p>
-            Item da coleta: <strong>{artefatoAr.item.nome}</strong>
+            Item da coleta: <strong>{item?.nome_item || 'Nenhum item pendente'}</strong>
+          </p>
+          <p>
+            Marcador detectado: <strong>{marcadorDetectado ? 'Sim' : 'Ainda não'}</strong>
           </p>
           {(erroCamera || erro) && (
             <p className="leitor-qr__erro-texto">{erroCamera || erro}</p>
           )}
-          {coletadoNoPainel && (
-            <p className="leitor-qr__coletado">
-              O item foi adicionado ao inventário do personagem.
+          {mensagem && (
+            <p className={mensagem.includes('sucesso') || mensagem.includes('inventário') ? 'leitor-qr__coletado' : 'leitor-qr__status'}>
+              {mensagem}
             </p>
           )}
         </div>
@@ -448,9 +432,9 @@ export function LeitorQr({
           type="button"
           className="leitor-qr__botao-coletar"
           onClick={lidarComColeta}
-          disabled={coletadoNoPainel}
+          disabled={!item || !marcadorDetectado || coletando}
         >
-          Coletar
+          {coletando ? 'Coletando...' : 'Coletar'}
         </button>
       </div>
     </section>

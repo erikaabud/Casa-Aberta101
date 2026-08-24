@@ -1,5 +1,5 @@
 .modal-qr { position:fixed; inset:0; background:rgba(3,7,18,.88); display:grid; place-items:center; padding:1rem; z-index:60; }
-.modal-qr__cartao { position:relative; width:min(23rem,100%); background:linear-gradient(135deg,#0d1527,#070b13); border:2px solid #d4af37; border-radius:1rem; padding:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem; text-align:center; }
+.modal-qr__cartao { position:relative; width:min(56rem,100%); max-height:min(92vh,56rem); overflow:auto; background:linear-gradient(135deg,#0d1527,#070b13); border:2px solid #d4af37; border-radius:1rem; padding:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem; text-align:center; }
 .modal-qr__fechar { position:absolute; top:.75rem; right:.75rem; border:0; background:transparent; color:#cbd5e1; cursor:pointer; }
 .modal-qr__cartao h3, .modal-qr__info h4 { margin:0; color:#fff2bc; }
 .modal-qr__caixa { background:#fff; border-radius:.9rem; border:3px solid #d4af37; padding:.8rem; }
