@@ -180,22 +180,22 @@ const Desenvolvedores = () => {
       imagem: dennys,
       idade: 39,
       cidade: 'São Paulo',
-      habilidades: ['PROFESSOR'],
-      bio: '',
-      redes: { github: '', linkedin: '', instagram: '' },
-      curiosidade: ' '
+      habilidades: ['PROFESSOR','FULL STACK'] ,
+      bio: 'Docente do Senac Santana desde 2010, atuo principalmente na área de desenvolvimento de software utilizando as linguagens Python, PHP, C Sharp e SQL. Formação Full Stack Developer pela PUCRS.',
+      redes: { github: 'DennysWFerreira', linkedin: 'Dennys Ferreira', instagram: '' },
+      curiosidade: 'Praticante de boxe e investidor entusiasta em bolsa de ações. Todos os dias pilotando uma moto por esta intensa São Paulo. '
     },
     {
       id:12,
       nome: 'ROGERIO SOBRAL',
       funcao: 'GESTOR DE BACK-END',
       imagem:rogerio,
-      idade:39,
+      idade:42,
       cidade: 'São Paulo',
-      habilidades: ['PROFESSOR', ],
-      bio: '',
-      redes: { github: '', linkedin: '', instagram: '' },
-      curiosidade: ' '
+      habilidades: ['PROFESSOR','FULL STACK' ],
+      bio: 'Docente no Senac e na Universidade de Guarulhos |  Desenvolvedor Full Stack (Java, Python, JavaScript, Node.js, React, SQL)',
+      redes: { github: 'RogerSobral', linkedin: 'Rogerio Sobral Ribeiro', instagram: '' },
+      curiosidade: 'Graduado em Análise e Desenvolvimento de Sistemas, com experiência sólida no desenvolvimento de aplicações web e sistemas desktop. Atualmente, atuo como docente na Universidade UNG, ministrando aulas nos cursos de Ciência da Computação e Gestão da Tecnologia da Informação, além de também ser instrutor no Senac Santana, onde leciono em cursos relacionados à tecnologia. Meu foco de estudo está na aquisição de conhecimento em Python, Java e JavaScript, com ênfase em Inteligência Artificial e técnicas de Data Science. Adicionalmente, curso pós-graduação em Arquitetura de Cloud Computing. '
     }
   ];
 
