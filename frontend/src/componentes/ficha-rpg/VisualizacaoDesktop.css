@@ -23,6 +23,7 @@
   flex-wrap: wrap;
   padding: 1rem;
   border-bottom: 1px solid rgba(212, 175, 55, .16);
+  z-index: 1;
 }
 
 .visualizacao-desktop__abas button {
@@ -34,6 +35,8 @@
   cursor: pointer;
   transition: 0.2s ease;
 }
+
+
 
 .visualizacao-desktop__abas button:hover {
   background: #2b1f12;
