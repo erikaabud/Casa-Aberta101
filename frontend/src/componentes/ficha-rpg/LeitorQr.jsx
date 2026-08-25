@@ -102,22 +102,126 @@ function ModeloArFallback() {
 }
 
 function ConteudoMarcador({ item }) {
-  const caminho = item?.caminho_imagem;
 
-  if (caminho) {
-    return (
-      <a-entity
-        gltf-model={`url(${caminho})`}
-        position="0 0.25 0"
-        rotation="0 0 0"
-        scale="0.45 0.45 0.45"
-        animation="property: rotation; to: 0 360 0; loop: true; dur: 9000; easing: linear"
-      />
-    );
+  const caminho =
+
+    item?.caminho_modelo_3d ||
+
+    item?.caminho_imagem ||
+
+    '';
+ 
+  if (!caminho) {
+
+    return <ModeloArFallback />;
+
   }
+ 
+  const caminhoMinusculo = caminho.toLowerCase();
+ 
+  const ehModelo3D =
 
+    caminhoMinusculo.endsWith('.glb') ||
+
+    caminhoMinusculo.endsWith('.gltf');
+ 
+  const ehImagem =
+
+    caminhoMinusculo.endsWith('.png') ||
+
+    caminhoMinusculo.endsWith('.jpg') ||
+
+    caminhoMinusculo.endsWith('.jpeg') ||
+
+    caminhoMinusculo.endsWith('.webp');
+ 
+  /* ==============================
+
+     MODELO 3D GLB / GLTF
+
+  ============================== */
+ 
+  if (ehModelo3D) {
+
+    return (
+<a-entity
+
+        gltf-model={`url(${caminho})`}
+
+        position="0 0.5 0"
+
+        rotation="0 0 0"
+
+        scale="0.7 0.7 0.7"
+
+        animation="
+
+          property: rotation;
+
+          to: 0 360 0;
+
+          loop: true;
+
+          dur: 9000;
+
+          easing: linear
+
+        "
+
+      />
+
+    );
+
+  }
+ 
+  /* ==============================
+
+     IMAGEM PNG / JPG / WEBP
+
+  ============================== */
+ 
+  if (ehImagem) {
+
+    return (
+<a-entity
+
+        position="0 0.7 0"
+
+        rotation="-90 0 0"
+>
+<a-image
+
+          src={caminho}
+
+          width="1.4"
+
+          height="1.4"
+
+          transparent="true"
+
+          material="
+
+            shader: flat;
+
+            transparent: true;
+
+            alphaTest: 0.01;
+
+            side: double;
+
+          "
+
+        />
+</a-entity>
+
+    );
+
+  }
+ 
   return <ModeloArFallback />;
+
 }
+ 
 
 function pararFluxoDeMidia(elemento) {
   const fluxo = elemento?.srcObject;
@@ -182,6 +286,13 @@ export function LeitorQr({
   const [mensagem, setMensagem] = useState('');
   const estilosOriginaisDocumento = useRef(null);
   const componenteMontadoRef = useRef(true);
+  useEffect(() => {
+    componenteMontadoRef.current = true;
+   
+    return () => {
+      componenteMontadoRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     setErroCamera(null);
@@ -191,44 +302,83 @@ export function LeitorQr({
   }, [regiao?.id_regiao, missao?.id_missao, item?.id_item]);
 
   useEffect(() => {
+
     const html = document.documentElement;
+  
     const body = document.body;
-
+   
     estilosOriginaisDocumento.current = {
+  
       htmlStyle: html.getAttribute('style'),
+  
       bodyStyle: body.getAttribute('style'),
+  
     };
-
+   
     if (modo === 'modal') {
+  
       html.classList.add('leitor-qr-scroll-lock');
+  
       body.classList.add('leitor-qr-scroll-lock');
+   
       html.style.overflow = 'hidden';
+  
       body.style.overflow = 'hidden';
-      html.style.height = '100%';
-      body.style.height = '100%';
+  
     }
-
+   
     return () => {
+  
       limparResiduosGlobaisAr(referenciaCena.current);
-
+   
       html.classList.remove('leitor-qr-scroll-lock');
+  
       body.classList.remove('leitor-qr-scroll-lock');
-
+   
       const estilosOriginais = estilosOriginaisDocumento.current;
-
+   
       if (estilosOriginais?.htmlStyle) {
+  
         html.setAttribute('style', estilosOriginais.htmlStyle);
+  
       } else {
+  
         html.removeAttribute('style');
+  
       }
-
+   
       if (estilosOriginais?.bodyStyle) {
+  
         body.setAttribute('style', estilosOriginais.bodyStyle);
+  
       } else {
+  
         body.removeAttribute('style');
+  
       }
+   
+      // Remove alterações de tamanho deixadas pelo AR.js
+  
+      requestAnimationFrame(() => {
+  
+        body.style.removeProperty('width');
+  
+        body.style.removeProperty('height');
+  
+        body.style.removeProperty('margin-left');
+  
+        body.style.removeProperty('margin-top');
+   
+        html.style.removeProperty('height');
+   
+        window.dispatchEvent(new Event('resize'));
+  
+      });
+  
     };
+  
   }, [modo]);
+   
 
   useEffect(() => {
     const marcador = marcadorRef.current;
@@ -247,67 +397,386 @@ export function LeitorQr({
   }, [pronto, item?.id_item]);
 
   function encaixarElementosArNoQuadro() {
+
     const container = referenciaCena.current;
-
+   
     if (!container) return false;
-
-    const canvasAlvoNoModal = container.querySelector('.a-canvas.a-grab-cursor');
-
+   
+    const cena = container.querySelector('a-scene');
+   
     const videoAr =
+  
       document.querySelector('#arjs-video') ||
+  
       document.querySelector('body > video');
-
+   
+    /*
+  
+     * IMPORTANTE:
+  
+     * o canvas precisa continuar DENTRO do a-scene.
+  
+     * Não usar appendChild(canvasAr) aqui.
+  
+     */
+  
     const canvasAr =
-      canvasAlvoNoModal ||
-      document.querySelector('.a-canvas.a-grab-cursor') ||
-      document.querySelector('.a-canvas') ||
-      document.querySelector('canvas[data-aframe-canvas]');
-
-    if (canvasAr && canvasAr.parentElement !== container) {
-      container.appendChild(canvasAr);
-    }
-
-    if (videoAr && videoAr.parentElement !== container) {
-      if (canvasAr) {
-        container.insertBefore(videoAr, canvasAr);
-      } else {
-        container.appendChild(videoAr);
-      }
-    }
-
-    [videoAr, canvasAr].filter(Boolean).forEach((elemento) => {
-      elemento.style.setProperty('position', 'absolute', 'important');
-      elemento.style.setProperty('inset', '0', 'important');
-      elemento.style.setProperty('top', '0', 'important');
-      elemento.style.setProperty('left', '0', 'important');
-      elemento.style.setProperty('width', '100%', 'important');
-      elemento.style.setProperty('height', '100%', 'important');
-      elemento.style.setProperty('max-width', '100%', 'important');
-      elemento.style.setProperty('max-height', '100%', 'important');
-      elemento.style.setProperty('display', 'block', 'important');
-      elemento.style.setProperty('transform', 'none', 'important');
-      elemento.style.setProperty('margin', '0', 'important');
-    });
-
+  
+      cena?.canvas ||
+  
+      cena?.querySelector('canvas.a-canvas') ||
+  
+      cena?.querySelector('canvas[data-aframe-canvas]') ||
+  
+      cena?.querySelector('canvas');
+   
+    /* =====================================
+  
+       VÍDEO DA CÂMERA
+  
+    ===================================== */
+   
     if (videoAr) {
+  
+      /*
+  
+       * O vídeo pode ficar dentro do nosso container.
+  
+       * O canvas NÃO.
+  
+       */
+  
+      if (videoAr.parentElement !== container) {
+  
+        container.insertBefore(videoAr, container.firstChild);
+  
+      }
+   
       videoAr.setAttribute('playsinline', 'true');
+  
+      videoAr.setAttribute('autoplay', 'true');
+   
       videoAr.muted = true;
+  
       videoAr.dataset.arDentroDoModal = 'true';
-      videoAr.style.setProperty('object-fit', 'cover', 'important');
-      videoAr.style.setProperty('z-index', '0', 'important');
-      videoAr.style.setProperty('opacity', '1', 'important');
-      videoAr.style.setProperty('visibility', 'visible', 'important');
+   
+      videoAr.style.setProperty(
+  
+        'position',
+  
+        'absolute',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'inset',
+  
+        '0',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'width',
+  
+        '100%',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'height',
+  
+        '100%',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'object-fit',
+  
+        'cover',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'object-position',
+  
+        'center',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'margin',
+  
+        '0',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'transform',
+  
+        'none',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'z-index',
+  
+        '0',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'opacity',
+  
+        '1',
+  
+        'important'
+  
+      );
+   
+      videoAr.style.setProperty(
+  
+        'visibility',
+  
+        'visible',
+  
+        'important'
+  
+      );
+  
     }
-
+   
+    /* =====================================
+  
+       CENA DO A-FRAME
+  
+    ===================================== */
+   
+    if (cena) {
+  
+      cena.style.setProperty(
+  
+        'position',
+  
+        'absolute',
+  
+        'important'
+  
+      );
+   
+      cena.style.setProperty(
+  
+        'inset',
+  
+        '0',
+  
+        'important'
+  
+      );
+   
+      cena.style.setProperty(
+  
+        'width',
+  
+        '100%',
+  
+        'important'
+  
+      );
+   
+      cena.style.setProperty(
+  
+        'height',
+  
+        '100%',
+  
+        'important'
+  
+      );
+   
+      cena.style.setProperty(
+  
+        'z-index',
+  
+        '1',
+  
+        'important'
+  
+      );
+   
+      cena.style.setProperty(
+  
+        'pointer-events',
+  
+        'none',
+  
+        'important'
+  
+      );
+  
+    }
+   
+    /* =====================================
+  
+       CANVAS 3D
+  
+    ===================================== */
+   
     if (canvasAr) {
+  
+      /*
+  
+       * NÃO mover este elemento.
+  
+       * Ele precisa continuar filho do a-scene.
+  
+       */
+   
       canvasAr.dataset.arDentroDoModal = 'true';
-      canvasAr.style.setProperty('z-index', '1', 'important');
-      canvasAr.style.setProperty('pointer-events', 'none', 'important');
-      canvasAr.style.setProperty('background', 'transparent', 'important');
+   
+      canvasAr.style.setProperty(
+  
+        'position',
+  
+        'absolute',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'inset',
+  
+        '0',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'width',
+  
+        '100%',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'height',
+  
+        '100%',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'margin',
+  
+        '0',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'display',
+  
+        'block',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'background',
+  
+        'transparent',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'opacity',
+  
+        '1',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'visibility',
+  
+        'visible',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'z-index',
+  
+        '1',
+  
+        'important'
+  
+      );
+   
+      canvasAr.style.setProperty(
+  
+        'pointer-events',
+  
+        'none',
+  
+        'important'
+  
+      );
+  
     }
-
-    return !!videoAr;
+   
+    return !!videoAr && !!canvasAr;
+  
   }
+   
+
 
   // Pré-checagem de permissão: força o prompt de câmera (e captura erro de HTTP/permite negada)
   useEffect(() => {
@@ -395,11 +864,13 @@ export function LeitorQr({
         (video.readyState >= 2 || video.videoWidth > 0 || video.videoHeight > 0) &&
         !!canvasNoModal;
 
-      if (ativo && estaAtivo) {
-        setCameraAtiva(true);
-        window.clearInterval(intervalo);
-        return;
-      }
+        if (ativo && estaAtivo) {
+          setCameraAtiva(true);
+         
+          // AR.js continua alterando o tamanho por alguns segundos.
+          // Por isso não encerramos o ajuste imediatamente.
+          encaixarElementosArNoQuadro();
+        }
 
       if (tentativas >= maxTentativas) {
         if (ativo) {
@@ -543,8 +1014,15 @@ export function LeitorQr({
                 vr-mode-ui="enabled: false"
                 device-orientation-permission-ui="enabled: false"
               >
-                <a-marker ref={marcadorRef} preset="hiro">
-                  <ConteudoMarcador item={item} />
+                <a-marker
+                  ref={marcadorRef}
+                  preset="hiro"
+                  emitevents="true"
+                  smooth="true"
+                  smoothCount="10"
+                  smoothTolerance="0.01"
+                  smoothThreshold="5">
+                 <ConteudoMarcador item={item} />
                 </a-marker>
                 <a-entity camera />
               </a-scene>
