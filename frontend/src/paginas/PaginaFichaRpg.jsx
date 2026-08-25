@@ -1,330 +1,157 @@
-// src/paginas/PaginaFichaRpg.jsx
-
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contextos/AuthContext';
-import { personagemInicial } from '../dados/personagemInicial';
 import { BarraModoDispositivo } from '../componentes/ficha-rpg/BarraModoDispositivo';
 import { VisualizacaoDesktop } from '../componentes/ficha-rpg/VisualizacaoDesktop';
 import { VisualizacaoMobile } from '../componentes/ficha-rpg/VisualizacaoMobile';
 import { ModalQr } from '../componentes/ficha-rpg/ModalQr';
-import { obterArtefatoArPorTerritorio } from '../dados/artefatosAr';
-import { 
-  carregarPersonagem, 
-  salvarPersonagem, 
-  sincronizarPersonagem, 
-  carregarClasseEscolhida 
-} from '../servicos/personagemServico';
+import { coletarItemHiro, obterMinhaFicha } from '../servicos/jogoApi';
 import './PaginaFichaRpg.css';
 
-// TERRITORIOS DEFINIDOS AQUI - FORA DO COMPONENTE
-const TERRITORIOS = {
-  'floresta_sombria': {
-    nome: 'Floresta Sombria',
-    icone: '🌲',
-    poderes: [
-      { id: 1, nome: 'Flecha Envenenada', tipo: 'Ataque', recarga: '6s', custo: 20, descricao: 'Dispara uma flecha que causa dano ao longo do tempo.' },
-      { id: 2, nome: 'Manto das Trevas', tipo: 'Defesa', recarga: '10s', custo: 15, descricao: 'Envolve o usuário em sombras, aumentando a esquiva.' },
-      { id: 3, nome: 'Chuva de Espinhos', tipo: 'Ataque em Área', recarga: '12s', custo: 30, descricao: 'Espinhos surgem do chão acertando todos os inimigos.' },
-    ],
-    missoes: [
-      { id: 1, nome: 'Caça ao Lobo', descricao: 'Derrote 3 lobos na clareira.', recompensa: '100 XP' },
-      { id: 2, nome: 'Coleta de Ervas', descricao: 'Encontre 5 ervas raras.', recompensa: 'Poção de Cura' },
-    ],
-    inventario: [
-      { id: 1, nome: 'Poção de Cura', quantidade: 2 },
-      { id: 2, nome: 'Adaga de Ferro', quantidade: 1 },
-    ]
-  },
-  'deserto_ardente': {
-    nome: 'Deserto Ardente',
-    icone: '🏜️',
-    poderes: [
-      { id: 4, nome: 'Rajada de Fogo', tipo: 'Ataque em Área', recarga: '15s', custo: 35, descricao: 'Invoca uma onda de calor que queima inimigos próximos.' },
-      { id: 5, nome: 'Miragem Enganosa', tipo: 'Fuga', recarga: '20s', custo: 10, descricao: 'Cria uma ilusão que engana os inimigos e permite recuar.' },
-    ],
-    missoes: [
-      { id: 3, nome: 'Proteger a Caravana', descricao: 'Escorte a caravana até o oásis.', recompensa: '200 XP' },
-      { id: 4, nome: 'Caça ao Escorpião Gigante', descricao: 'Derrote o escorpião que aterroriza os viajantes.', recompensa: 'Gema de Fogo' },
-    ],
-    inventario: [
-      { id: 4, nome: 'Garrafa de Água', quantidade: 3 },
-      { id: 5, nome: 'Arco Longo', quantidade: 1 },
-    ]
-  },
-  'montanhas_geladas': {
-    nome: 'Montanhas Geladas',
-    icone: '❄️',
-    poderes: [
-      { id: 6, nome: 'Escudo de Gelo', tipo: 'Defesa', recarga: '8s', custo: 25, descricao: 'Cria uma barreira de gelo que reflete dano.' },
-      { id: 7, nome: 'Fúria do Inverno', tipo: 'Ataque', recarga: '10s', custo: 30, descricao: 'Uma tempestade de gelo atinge o alvo.' },
-      { id: 8, nome: 'Passo Nevado', tipo: 'Deslocamento', recarga: '5s', custo: 12, descricao: 'Desliza rapidamente sobre o gelo para se reposicionar.' },
-    ],
-    missoes: [
-      { id: 5, nome: 'Recuperar o Cristal', descricao: 'Pegue o cristal no topo da montanha.', recompensa: 'Gema mágica' },
-    ],
-    inventario: [
-      { id: 7, nome: 'Pele de Urso', quantidade: 1 },
-      { id: 8, nome: 'Fogueira Portátil', quantidade: 2 },
-    ]
-  }
+const ICONES_REGIAO = {
+  floresta_sombria: '🌲',
+  deserto_ardente: '🏜️',
+  montanhas_geladas: '❄️',
+  casa_aberta: '🏠',
 };
 
 export default function PaginaFichaRpg() {
-  const navigate = useNavigate();
-  const { equipe } = useAuth();
-
-  const [personagem, setPersonagem] = useState(() => {
-    return carregarPersonagem();
-  });
-
+  const navegar = useNavigate();
+  const { equipe, sair } = useAuth();
+  const [ficha, setFicha] = useState(null);
   const [modoDispositivo, setModoDispositivo] = useState('auto');
-  const [habilidadesUsadas, setHabilidadesUsadas] = useState([]);
-  const [abaAtiva, setAbaAtiva] = useState('poderes');
+  const [abaAtiva, setAbaAtiva] = useState('missoes');
   const [mostrarModalQr, setMostrarModalQr] = useState(false);
-  const [sincronizandoBanco, setSincronizandoBanco] = useState(false);
-  const [mensagemSincronizacao, setMensagemSincronizacao] = useState('');
+  const [mensagemSistema, setMensagemSistema] = useState('');
+  const [carregando, setCarregando] = useState(true);
+  const [territorioId, setTerritorioId] = useState('');
+  const [missaoSelecionadaId, setMissaoSelecionadaId] = useState(null);
 
-  const [territorioId, setTerritorioId] = useState('floresta_sombria');
-  const dadosTerritorio = TERRITORIOS[territorioId];
-  const artefatoArAtual = useMemo(
-    () => obterArtefatoArPorTerritorio(territorioId, dadosTerritorio?.missoes),
-    [territorioId, dadosTerritorio]
-  );
-
-  // SALVA PERSONAGEM QUANDO MUDAR
-  useEffect(() => {
-    if (personagem) {
-      salvarPersonagem(personagem);
+  async function carregarFicha({ exibirCarregando = true, limparMensagem = true } = {}) {
+    if (exibirCarregando) {
+      setCarregando(true);
     }
-  }, [personagem]);
 
-  // SINCRONIZA A CLASSE AO CARREGAR A PÁGINA
-  useEffect(() => {
-    const classeEscolhida = carregarClasseEscolhida();
+    try {
+      const resposta = await obterMinhaFicha();
+      setFicha(resposta);
+      if (limparMensagem) {
+        setMensagemSistema('');
+      }
 
-    if (classeEscolhida && personagem && classeEscolhida !== personagem.classe) {
-      const template = personagemInicial[classeEscolhida];
-      if (template) {
-        setPersonagem({
-          ...template,
-          nome: personagem.nome,
-        });
+      const primeiraRegiao = resposta?.regioes?.[0];
+      setTerritorioId((atual) => atual || primeiraRegiao?.slug || '');
+    } catch (erro) {
+      if (erro?.status === 401) {
+        // Token ausente/expirado: limpa a sessão e volta para o login
+        sair();
+        navegar('/login', { replace: true });
+        return;
+      }
+      setMensagemSistema(erro?.message || 'Não foi possível carregar a ficha do jogo.');
+    } finally {
+      if (exibirCarregando) {
+        setCarregando(false);
       }
     }
+  }
+
+  useEffect(() => {
+    carregarFicha();
   }, []);
 
-  const poderesDaClasse = personagem?.habilidades || [];
+  const territorios = useMemo(() => {
+    return (ficha?.regioes || []).reduce((acumulador, regiao) => {
+      acumulador[regiao.slug] = {
+        nome: regiao.nome_regiao,
+        icone: ICONES_REGIAO[regiao.slug] || '🗺️',
+      };
+      return acumulador;
+    }, {});
+  }, [ficha]);
 
-  function executarPoder(poder) {
-    if (!personagem) return;
-    
-    const custo = poder.custoMana ?? 0;
-    const ehUsoUnico = poder.recarga === 'Uso único';
+  const dadosTerritorio = useMemo(
+    () => ficha?.regioes?.find((regiao) => regiao.slug === territorioId) || ficha?.regioes?.[0] || null,
+    [ficha, territorioId],
+  );
 
-    if (ehUsoUnico && habilidadesUsadas.includes(poder.id)) {
-      alert('Este poder já foi utilizado e não pode ser usado novamente.');
+  useEffect(() => {
+    if (!dadosTerritorio?.missoes?.length) {
+      setMissaoSelecionadaId(null);
       return;
     }
 
-    if (personagem.atributos.manaAtual < custo) {
-      alert('Mana insuficiente para usar esse poder.');
-      return;
-    }
-
-    setPersonagem((personagemAtual) => ({
-      ...personagemAtual,
-      atributos: {
-        ...personagemAtual.atributos,
-        manaAtual: Math.max(0, personagemAtual.atributos.manaAtual - custo),
-      },
-    }));
-
-    if (ehUsoUnico) {
-      setHabilidadesUsadas((atual) => [...atual, poder.id]);
-    }
-
-    alert(`Você usou ${poder.nome}!`);
-  }
-
-  const poderTotal = useMemo(() => {
-    if (!personagem) return 0;
-    
-    const bonusItens = personagem.inventario
-      .filter((item) => item.equipado)
-      .reduce((acumulador, item) => acumulador + (item.raridade === 'lendario' ? 100 : item.raridade === 'epico' ? 70 : 40), 0);
-    return Math.round(
-      personagem.atributos.forca * 10 +
-      personagem.atributos.defesa * 8 +
-      personagem.atributos.vidaMaxima / 4 +
-      personagem.atributos.manaMaxima / 4 +
-      personagem.nivel * 80 +
-      bonusItens
-    );
-  }, [personagem]);
-
-  function atualizarNome(novoNome) {
-    if (!personagem) return;
-    setPersonagem((personagemAtual) => ({ ...personagemAtual, nome: novoNome }));
-  }
-
-  function atualizarClasse(novaClasse) {
-    const template = personagemInicial[novaClasse];
-    if (!template) return;
-
-    setPersonagem((personagemAtual) => ({
-      ...template,
-      nome: personagemAtual.nome,
-    }));
-  }
-
-  function ganharExperiencia() {
-    if (!personagem) return;
-    
-    setPersonagem((personagemAtual) => {
-      let experienciaAtual = personagemAtual.experienciaAtual + 500;
-      let nivel = personagemAtual.nivel;
-      let experienciaMaxima = personagemAtual.experienciaMaxima;
-
-      if (experienciaAtual >= personagemAtual.experienciaMaxima) {
-        experienciaAtual -= personagemAtual.experienciaMaxima;
-        nivel += 1;
-        experienciaMaxima = Math.round(personagemAtual.experienciaMaxima * 1.2);
-      }
-
-      return {
-        ...personagemAtual,
-        nivel,
-        experienciaAtual,
-        experienciaMaxima,
-        atributos: {
-          ...personagemAtual.atributos,
-          vidaMaxima: personagemAtual.atributos.vidaMaxima + 25,
-          vidaAtual: personagemAtual.atributos.vidaMaxima + 25,
-          manaMaxima: personagemAtual.atributos.manaMaxima + 12,
-          manaAtual: personagemAtual.atributos.manaMaxima + 12,
-          forca: personagemAtual.atributos.forca + 1,
-          defesa: personagemAtual.atributos.defesa + 1,
-        },
-      };
+    setMissaoSelecionadaId((atual) => {
+      const existe = dadosTerritorio.missoes.some((missao) => missao.id_missao === atual);
+      if (existe) return atual;
+      return dadosTerritorio.missoes.find((missao) => !missao.concluida)?.id_missao || dadosTerritorio.missoes[0]?.id_missao || null;
     });
-  }
+  }, [dadosTerritorio]);
 
-  function atualizarAtributo(chave, delta) {
-    if (!personagem) return;
-    
-    setPersonagem((personagemAtual) => {
-      const atributosAtualizados = {
-        ...personagemAtual.atributos,
-        [chave]: Math.max(10, personagemAtual.atributos[chave] + delta)
-      };
+  const missaoSelecionada = useMemo(
+    () => dadosTerritorio?.missoes?.find((missao) => missao.id_missao === missaoSelecionadaId) || null,
+    [dadosTerritorio, missaoSelecionadaId],
+  );
 
-      if (chave === 'vidaMaxima') {
-        atributosAtualizados.vidaAtual = Math.min(
-          personagemAtual.atributos.vidaAtual + delta,
-          atributosAtualizados.vidaMaxima
-        );
-      }
+  const itemSelecionado = useMemo(
+    () =>
+      missaoSelecionada?.itens?.find((item) => {
+        const necessario = Number(item.quantidade_necessaria || 1);
+        const atual = Number(item.quantidade_usuario || 0);
+        return atual < necessario;
+      }) || null,
+    [missaoSelecionada],
+  );
 
-      if (chave === 'manaMaxima') {
-        atributosAtualizados.manaAtual = Math.min(
-          personagemAtual.atributos.manaAtual + delta,
-          atributosAtualizados.manaMaxima
-        );
-      }
+  async function lidarColeta(item) {
+    setMostrarModalQr(false);
+    setMensagemSistema('Item coletado. Atualizando a ficha...');
 
-      return { ...personagemAtual, atributos: atributosAtualizados };
-    });
-  }
-
-  function alternarEquipamento(idItem) {
-    if (!personagem) return;
-    
-    setPersonagem((personagemAtual) => ({
-      ...personagemAtual,
-      inventario: personagemAtual.inventario.map((item) =>
-        item.id === idItem ? { ...item, equipado: !item.equipado } : item
-      )
-    }));
-  }
-
-  function concluirMissao(idMissao) {
-    if (!personagem) return;
-    
-    setPersonagem((personagemAtual) => ({
-      ...personagemAtual,
-      ouro: personagemAtual.ouro + (personagemAtual.missoes.find((missao) => missao.id === idMissao)?.recompensaOuro || 0),
-      missoes: personagemAtual.missoes.map((missao) =>
-        missao.id === idMissao ? { ...missao, concluida: true } : missao
-      ),
-    }));
-  }
-
-  function coletarArtefatoAr(artefatoAr) {
-    if (!artefatoAr?.item || !personagem) {
-      return false;
-    }
-
-    let itemFoiAdicionado = true;
-
-    setPersonagem((personagemAtual) => {
-      const itemJaExiste = personagemAtual.inventario.some(
-        (item) => item.origemArId === artefatoAr.item.chave
-      );
-
-      if (itemJaExiste) {
-        itemFoiAdicionado = false;
-        return personagemAtual;
-      }
-
-      const nomeMissaoVinculada =
-        artefatoAr.missaoVinculada?.nome || artefatoAr.missaoVinculada?.titulo;
-
-      return {
-        ...personagemAtual,
-        inventario: [
-          ...personagemAtual.inventario,
-          {
-            id: Date.now(),
-            nome: artefatoAr.item.nome,
-            raridade: artefatoAr.item.raridade,
-            descricao: artefatoAr.item.descricao,
-            bonus: artefatoAr.item.bonus,
-            icone: artefatoAr.item.icone,
-            quantidade: artefatoAr.item.quantidade ?? 1,
-            equipado: false,
-            origemArId: artefatoAr.item.chave,
-            territorioId,
-            territorioNome: dadosTerritorio.nome,
-            missaoId: artefatoAr.missaoVinculada?.id ?? null,
-            missaoNome: nomeMissaoVinculada || null,
-            modelo3d: artefatoAr.modelo?.caminho || null,
-          },
-        ],
-      };
-    });
-
-    return itemFoiAdicionado;
-  }
-
-  async function sincronizarComBanco() {
-    if (!personagem) return;
-    
-    setSincronizandoBanco(true);
     try {
-      const resposta = await sincronizarPersonagem(personagem);
-      setMensagemSincronizacao(resposta.mensagem);
-    } catch {
-      setMensagemSincronizacao('Não foi possível sincronizar agora. Os dados continuam salvos localmente.');
-    } finally {
-      setSincronizandoBanco(false);
+      const resposta = await coletarItemHiro(item.id_item);
+      await carregarFicha({ exibirCarregando: false, limparMensagem: false });
+      setMensagemSistema(resposta?.mensagem || 'Item coletado com sucesso.');
+      return resposta;
+    } catch (erro) {
+      setMensagemSistema(erro?.message || 'Não foi possível coletar o item agora.');
+      throw erro;
     }
   }
 
-  if (!personagem) {
+  if (carregando) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <p>Carregando personagem...</p>
+        <p>Carregando ficha do jogo...</p>
+      </div>
+    );
+  }
+
+  if (!ficha?.personagem) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: '1.5rem' }}>
+        <div style={{ maxWidth: '36rem', width: '100%', textAlign: 'center' }}>
+          <h2 style={{ color: '#fff2bc', marginBottom: '0.75rem' }}>Não foi possível carregar a ficha</h2>
+          <p style={{ color: '#cbd5e1', marginBottom: '1rem' }}>
+            {mensagemSistema || 'O backend retornou um erro ao montar a ficha. Verifique o console do backend para ver o motivo.'}
+          </p>
+          <button
+            type="button"
+            onClick={carregarFicha}
+            style={{
+              border: '1px solid #d4af37',
+              background: 'linear-gradient(135deg, #d4af37, #8a6711)',
+              color: '#070b12',
+              borderRadius: '0.8rem',
+              padding: '0.9rem 1rem',
+              fontSize: '1rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            Tentar novamente
+          </button>
+        </div>
       </div>
     );
   }
@@ -332,64 +159,46 @@ export default function PaginaFichaRpg() {
   return (
     <div className="pagina-ficha-rpg">
       <BarraModoDispositivo
-        territorios={TERRITORIOS}
-        territorioAtual={territorioId}
+        territorios={territorios}
+        territorioAtual={territorioId || Object.keys(territorios)[0]}
         aoMudarTerritorio={setTerritorioId}
       />
 
-      {mensagemSincronizacao && <div className="pagina-ficha-rpg__mensagem">{mensagemSincronizacao}</div>}
+      {mensagemSistema && <div className="pagina-ficha-rpg__mensagem">{mensagemSistema}</div>}
 
       <div className="pagina-ficha-rpg__conteudo">
         <div className="territorio-cabecalho">
-          <h1>{dadosTerritorio.icone} {dadosTerritorio.nome}</h1>
-          <p>Explore as habilidades e missões disponíveis nesta região.</p>
+          <h1>{territorios[dadosTerritorio?.slug]?.icone || '🗺️'} {dadosTerritorio?.nome_regiao || 'Região'}</h1>
+          <p>{dadosTerritorio?.descricao_regiao || 'Selecione uma região para ver as missões e os itens coletáveis.'}</p>
         </div>
 
         {modoDispositivo === 'mobile' && (
           <VisualizacaoMobile
-            personagem={personagem}
+            personagem={ficha.personagem}
+            equipe={ficha.equipe || equipe}
+            membros={ficha.membros || []}
             dadosTerritorio={dadosTerritorio}
-            artefatoAr={artefatoArAtual}
-            poderes={poderesDaClasse}
-            mpAtual={personagem?.atributos?.manaAtual || 0}
-            chaveDeCeraUsada={habilidadesUsadas.length > 0}
-            carregandoPoderes={false}
-            aoUsarPoder={executarPoder}
-            poderTotal={poderTotal}
+            missaoSelecionadaId={missaoSelecionadaId}
             abaAtiva={abaAtiva}
             aoSelecionarAba={setAbaAtiva}
-            aoAtualizarNome={atualizarNome}
-            aoGanharExperiencia={ganharExperiencia}
-            aoAtualizarAtributo={atualizarAtributo}
-            aoConcluirMissao={concluirMissao}
-            aoAlternarEquipamento={alternarEquipamento}
             aoAbrirModalQr={() => setMostrarModalQr(true)}
-            aoResgatarQr={coletarArtefatoAr}
-            aoColetarArtefatoAr={coletarArtefatoAr}
+            aoSelecionarMissao={setMissaoSelecionadaId}
+            inventario={ficha.inventario || []}
           />
         )}
 
         {modoDispositivo === 'desktop' && (
           <VisualizacaoDesktop
-            personagem={personagem}
+            personagem={ficha.personagem}
+            equipe={ficha.equipe || equipe}
+            membros={ficha.membros || []}
             dadosTerritorio={dadosTerritorio}
-            artefatoAr={artefatoArAtual}
-            poderes={poderesDaClasse}
-            mpAtual={personagem?.atributos?.manaAtual || 0}
-            chaveDeCeraUsada={habilidadesUsadas.length > 0}
-            carregandoPoderes={false}
-            aoUsarPoder={executarPoder}
-            poderTotal={poderTotal}
+            missaoSelecionadaId={missaoSelecionadaId}
             abaAtiva={abaAtiva}
             aoSelecionarAba={setAbaAtiva}
-            aoAtualizarNome={atualizarNome}
-            aoGanharExperiencia={ganharExperiencia}
-            aoAtualizarAtributo={atualizarAtributo}
-            aoConcluirMissao={concluirMissao}
-            aoAlternarEquipamento={alternarEquipamento}
             aoAbrirModalQr={() => setMostrarModalQr(true)}
-            aoResgatarQr={coletarArtefatoAr}
-            aoColetarArtefatoAr={coletarArtefatoAr}
+            aoSelecionarMissao={setMissaoSelecionadaId}
+            inventario={ficha.inventario || []}
           />
         )}
 
@@ -397,48 +206,30 @@ export default function PaginaFichaRpg() {
           <>
             <div className="pagina-ficha-rpg__somente-mobile">
               <VisualizacaoMobile
-                personagem={personagem}
+                personagem={ficha.personagem}
+                equipe={ficha.equipe || equipe}
+                membros={ficha.membros || []}
                 dadosTerritorio={dadosTerritorio}
-                artefatoAr={artefatoArAtual}
-                poderes={poderesDaClasse}
-                mpAtual={personagem?.atributos?.manaAtual || 0}
-                chaveDeCeraUsada={habilidadesUsadas.length > 0}
-                carregandoPoderes={false}
-                aoUsarPoder={executarPoder}
-                poderTotal={poderTotal}
+                missaoSelecionadaId={missaoSelecionadaId}
                 abaAtiva={abaAtiva}
                 aoSelecionarAba={setAbaAtiva}
-                aoAtualizarNome={atualizarNome}
-                aoGanharExperiencia={ganharExperiencia}
-                aoAtualizarAtributo={atualizarAtributo}
-                aoConcluirMissao={concluirMissao}
-                aoAlternarEquipamento={alternarEquipamento}
                 aoAbrirModalQr={() => setMostrarModalQr(true)}
-                aoResgatarQr={coletarArtefatoAr}
-                aoColetarArtefatoAr={coletarArtefatoAr}
+                aoSelecionarMissao={setMissaoSelecionadaId}
+                inventario={ficha.inventario || []}
               />
             </div>
             <div className="pagina-ficha-rpg__somente-desktop">
               <VisualizacaoDesktop
-                personagem={personagem}
+                personagem={ficha.personagem}
+                equipe={ficha.equipe || equipe}
+                membros={ficha.membros || []}
                 dadosTerritorio={dadosTerritorio}
-                artefatoAr={artefatoArAtual}
-                poderes={poderesDaClasse}
-                mpAtual={personagem?.atributos?.manaAtual || 0}
-                chaveDeCeraUsada={habilidadesUsadas.length > 0}
-                carregandoPoderes={false}
-                aoUsarPoder={executarPoder}
-                poderTotal={poderTotal}
+                missaoSelecionadaId={missaoSelecionadaId}
                 abaAtiva={abaAtiva}
                 aoSelecionarAba={setAbaAtiva}
-                aoAtualizarNome={atualizarNome}
-                aoGanharExperiencia={ganharExperiencia}
-                aoAtualizarAtributo={atualizarAtributo}
-                aoConcluirMissao={concluirMissao}
-                aoAlternarEquipamento={alternarEquipamento}
                 aoAbrirModalQr={() => setMostrarModalQr(true)}
-                aoResgatarQr={coletarArtefatoAr}
-                aoColetarArtefatoAr={coletarArtefatoAr}
+                aoSelecionarMissao={setMissaoSelecionadaId}
+                inventario={ficha.inventario || []}
               />
             </div>
           </>
@@ -447,8 +238,10 @@ export default function PaginaFichaRpg() {
 
       {mostrarModalQr && (
         <ModalQr
-          personagem={personagem}
-          poderTotal={poderTotal}
+          regiao={dadosTerritorio}
+          missao={missaoSelecionada}
+          item={itemSelecionado}
+          aoColetar={lidarColeta}
           aoFechar={() => setMostrarModalQr(false)}
         />
       )}

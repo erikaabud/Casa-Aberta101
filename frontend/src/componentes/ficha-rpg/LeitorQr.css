@@ -56,6 +56,77 @@
     linear-gradient(180deg, rgba(15, 23, 42, 0.85), rgba(2, 6, 23, 0.95));
 }
 
+.leitor-qr--modal {
+  padding: 0;
+  height: 100%;
+}
+
+.leitor-qr--modal .leitor-qr__caixa {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  height: 100%;
+}
+
+.leitor-qr--modal .leitor-qr__viewport {
+  height: 100%;
+  border-radius: 0;
+  border: 0;
+}
+
+.leitor-qr__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  padding: 0.85rem;
+  z-index: 5;
+}
+
+.leitor-qr__overlay-topo,
+.leitor-qr__overlay-base,
+.leitor-qr__overlay-status {
+  pointer-events: auto;
+  background: rgba(3, 7, 18, 0.62);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 0.9rem;
+  padding: 0.65rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.leitor-qr__overlay-topo strong {
+  color: #fff2bc;
+}
+
+.leitor-qr__overlay-base {
+  gap: 0.65rem;
+}
+
+.leitor-qr__overlay-status {
+  align-self: center;
+  max-width: min(36rem, 100%);
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  color: #cbd5e1;
+}
+
+.leitor-qr__overlay-status strong {
+  color: #fff2bc;
+}
+
+.leitor-qr__overlay-base .leitor-qr__status {
+  color: #cbd5e1;
+}
+
+.leitor-qr--modal .leitor-qr__botao-coletar {
+  width: 100%;
+}
+
 .leitor-qr__cena {
   position: absolute;
   inset: 0;

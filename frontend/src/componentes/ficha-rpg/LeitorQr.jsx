@@ -80,93 +80,171 @@ function useMotorAr() {
   return estado;
 }
 
-function ModeloArFallback({ fallback }) {
-  const configuracao = fallback || {};
-  const primitivo = configuracao.primitivo || 'box';
-
-  if (primitivo === 'octahedron') {
-    return (
-      <a-entity
-        geometry="primitive: octahedron; radius: 0.42"
-        material={`color: ${configuracao.cor || '#34d399'}; emissive: ${configuracao.emissive || '#14532d'}; metalness: 0.35; roughness: 0.25;`}
-        position={configuracao.posicao || '0 0.35 0'}
-        rotation={configuracao.rotacao || '0 45 0'}
-        scale={configuracao.escala || '0.45 0.45 0.45'}
-        animation="property: rotation; to: 0 405 0; loop: true; dur: 8000; easing: linear"
-      />
-    );
-  }
-
-  if (primitivo === 'dodecahedron') {
-    return (
-      <a-entity
-        geometry="primitive: dodecahedron; radius: 0.38"
-        material={`color: ${configuracao.cor || '#f59e0b'}; emissive: ${configuracao.emissive || '#7c2d12'}; metalness: 0.4; roughness: 0.2;`}
-        position={configuracao.posicao || '0 0.4 0'}
-        rotation={configuracao.rotacao || '0 0 0'}
-        scale={configuracao.escala || '0.4 0.4 0.4'}
-        animation="property: rotation; to: 360 360 0; loop: true; dur: 6000; easing: linear"
-      />
-    );
-  }
-
-  if (primitivo === 'icosahedron') {
-    return (
-      <a-entity
-        geometry="primitive: icosahedron; radius: 0.42"
-        material={`color: ${configuracao.cor || '#7dd3fc'}; emissive: ${configuracao.emissive || '#0c4a6e'}; metalness: 0.28; roughness: 0.24;`}
-        position={configuracao.posicao || '0 0.38 0'}
-        rotation={configuracao.rotacao || '0 0 0'}
-        scale={configuracao.escala || '0.46 0.46 0.46'}
-        animation="property: rotation; to: 0 360 360; loop: true; dur: 9000; easing: linear"
-      />
-    );
-  }
-
+function ModeloArFallback() {
   return (
-    <a-entity
-      geometry="primitive: box; depth: 0.5; height: 0.5; width: 0.5"
-      material={`color: ${configuracao.cor || '#d4af37'}; emissive: ${configuracao.emissive || '#5b4400'}; metalness: 0.32; roughness: 0.28;`}
-      position={configuracao.posicao || '0 0.35 0'}
-      rotation={configuracao.rotacao || '0 45 0'}
-      scale={configuracao.escala || '0.45 0.45 0.45'}
-      animation="property: rotation; to: 0 405 0; loop: true; dur: 7000; easing: linear"
-    />
+    <>
+      <a-entity
+        geometry="primitive: box; depth: 0.45; height: 0.45; width: 0.45"
+        material="color: #d4af37; emissive: #5b4400; metalness: 0.32; roughness: 0.28;"
+        position="0 0.35 0"
+        rotation="0 45 0"
+        animation="property: rotation; to: 0 405 0; loop: true; dur: 7000; easing: linear"
+      />
+      <a-ring
+        position="0 0.35 0"
+        rotation="-90 0 0"
+        radius-inner="0.48"
+        radius-outer="0.65"
+        color="#93c5fd"
+      />
+    </>
   );
 }
 
-function ConteudoMarcador({ artefato }) {
-  if (artefato?.modelo?.caminho) {
+function ConteudoMarcador({ item }) {
+  const caminho = item?.caminho_imagem;
+
+  if (caminho) {
     return (
       <a-entity
-        gltf-model={`url(${artefato.modelo.caminho})`}
-        position={artefato.modelo.posicao || '0 0.35 0'}
-        rotation={artefato.modelo.rotacao || '0 0 0'}
-        scale={artefato.modelo.escala || '0.45 0.45 0.45'}
+        gltf-model={`url(${caminho})`}
+        position="0 0.25 0"
+        rotation="0 0 0"
+        scale="0.45 0.45 0.45"
         animation="property: rotation; to: 0 360 0; loop: true; dur: 9000; easing: linear"
       />
     );
   }
 
-  return <ModeloArFallback fallback={artefato?.fallback} />;
+  return <ModeloArFallback />;
+}
+
+function pararFluxoDeMidia(elemento) {
+  const fluxo = elemento?.srcObject;
+  if (fluxo?.getTracks) {
+    fluxo.getTracks().forEach((trilha) => trilha.stop());
+  }
+
+  if (elemento) {
+    try {
+      elemento.srcObject = null;
+    } catch {
+      // ignora
+    }
+  }
+}
+
+function limparResiduosGlobaisAr(containerAtual = null) {
+  const seletores = [
+    '#arjs-video',
+    'body > video',
+    'canvas[data-aframe-canvas]',
+    '.a-canvas',
+    '.arjs-loader',
+    '.a-loader-title',
+    '.a-enter-vr',
+    '.a-orientation-modal',
+    'body > a-scene',
+  ];
+
+  const elementos = Array.from(document.querySelectorAll(seletores.join(', ')));
+
+  elementos.forEach((elemento) => {
+    if (containerAtual?.contains(elemento)) return;
+
+    if (elemento instanceof HTMLVideoElement) {
+      pararFluxoDeMidia(elemento);
+    }
+
+    try {
+      elemento.remove();
+    } catch {
+      // ignora
+    }
+  });
 }
 
 export function LeitorQr({
-  dadosTerritorio,
-  artefatoAr,
-  aoColetarArtefatoAr,
+  regiao,
+  missao,
+  item,
+  aoColetar,
+  aoEncerrar,
+  modo = 'painel',
 }) {
   const { pronto, erro } = useMotorAr();
   const referenciaCena = useRef(null);
+  const marcadorRef = useRef(null);
   const [erroCamera, setErroCamera] = useState(null);
   const [cameraAtiva, setCameraAtiva] = useState(false);
-  const [coletadoNoPainel, setColetadoNoPainel] = useState(false);
+  const [marcadorDetectado, setMarcadorDetectado] = useState(false);
+  const [coletando, setColetando] = useState(false);
+  const [mensagem, setMensagem] = useState('');
+  const estilosOriginaisDocumento = useRef(null);
+  const componenteMontadoRef = useRef(true);
 
   useEffect(() => {
-    setColetadoNoPainel(false);
     setErroCamera(null);
     setCameraAtiva(false);
-  }, [dadosTerritorio?.nome, artefatoAr?.item?.chave]);
+    setMarcadorDetectado(false);
+    setMensagem('');
+  }, [regiao?.id_regiao, missao?.id_missao, item?.id_item]);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    estilosOriginaisDocumento.current = {
+      htmlStyle: html.getAttribute('style'),
+      bodyStyle: body.getAttribute('style'),
+    };
+
+    if (modo === 'modal') {
+      html.classList.add('leitor-qr-scroll-lock');
+      body.classList.add('leitor-qr-scroll-lock');
+      html.style.overflow = 'hidden';
+      body.style.overflow = 'hidden';
+      html.style.height = '100%';
+      body.style.height = '100%';
+    }
+
+    return () => {
+      limparResiduosGlobaisAr(referenciaCena.current);
+
+      html.classList.remove('leitor-qr-scroll-lock');
+      body.classList.remove('leitor-qr-scroll-lock');
+
+      const estilosOriginais = estilosOriginaisDocumento.current;
+
+      if (estilosOriginais?.htmlStyle) {
+        html.setAttribute('style', estilosOriginais.htmlStyle);
+      } else {
+        html.removeAttribute('style');
+      }
+
+      if (estilosOriginais?.bodyStyle) {
+        body.setAttribute('style', estilosOriginais.bodyStyle);
+      } else {
+        body.removeAttribute('style');
+      }
+    };
+  }, [modo]);
+
+  useEffect(() => {
+    const marcador = marcadorRef.current;
+    if (!marcador) return undefined;
+
+    const aoEncontrar = () => setMarcadorDetectado(true);
+    const aoPerder = () => setMarcadorDetectado(false);
+
+    marcador.addEventListener('markerFound', aoEncontrar);
+    marcador.addEventListener('markerLost', aoPerder);
+
+    return () => {
+      marcador.removeEventListener('markerFound', aoEncontrar);
+      marcador.removeEventListener('markerLost', aoPerder);
+    };
+  }, [pronto, item?.id_item]);
 
   function encaixarElementosArNoQuadro() {
     const container = referenciaCena.current;
@@ -336,47 +414,115 @@ export function LeitorQr({
       observador.disconnect();
       window.clearInterval(intervalo);
     };
-  }, [pronto, dadosTerritorio?.nome]);
+  }, [pronto, regiao?.id_regiao]);
 
   useEffect(() => {
     return () => {
-      const videoAr =
-        document.querySelector('#arjs-video') ||
-        document.querySelector('body > video');
-
-      const fluxo = videoAr?.srcObject;
-
-      if (fluxo?.getTracks) {
-        fluxo.getTracks().forEach((trilha) => trilha.stop());
-      }
-
-      if (videoAr) {
-        videoAr.srcObject = null;
-      }
+      componenteMontadoRef.current = false;
+      finalizarMotorAr({ atualizarEstado: false });
     };
   }, []);
 
-  const missaoRelacionada = useMemo(() => {
-    const nomeMissao =
-      artefatoAr?.missaoVinculada?.nome || artefatoAr?.missaoVinculada?.titulo;
+  function finalizarMotorAr({ atualizarEstado = true } = {}) {
+    // 1) Pausa a cena do A-Frame (evita callbacks do AR.js tentando ler marker após desmontar)
+    const cena = referenciaCena.current?.querySelector('a-scene');
+    if (cena) {
+      try {
+        cena.pause();
+      } catch {
+        // ignora
+      }
+      try {
+        if (cena.renderer?.setAnimationLoop) {
+          cena.renderer.setAnimationLoop(null);
+        }
+        cena.renderer?.dispose?.();
+      } catch {
+        // ignora
+      }
+    }
 
-    return nomeMissao || 'Missão não vinculada';
-  }, [artefatoAr]);
+    // 2) Para a câmera (tracks)
+    const videoAr =
+      document.querySelector('#arjs-video') ||
+      document.querySelector('body > video');
 
-  function lidarComColeta() {
-    const itemFoiAdicionado = aoColetarArtefatoAr?.(artefatoAr);
+    pararFluxoDeMidia(videoAr);
 
-    if (itemFoiAdicionado !== false) {
-      setColetadoNoPainel(true);
+    // 3) Remove vídeo/canvas do AR.js (evita "vazar" layout na ficha)
+    const container = referenciaCena.current;
+    const elementosAr = [
+      ...(container ? Array.from(container.querySelectorAll('video[data-ar-dentro-do-modal="true"], canvas[data-ar-dentro-do-modal="true"], .a-canvas[data-ar-dentro-do-modal="true"]')) : []),
+    ];
+
+    elementosAr.forEach((elemento) => {
+      try {
+        elemento.remove();
+      } catch {
+        // ignora
+      }
+    });
+
+    if (videoAr) {
+      if (videoAr.dataset?.arDentroDoModal === 'true') {
+        try {
+          videoAr.remove();
+        } catch {
+          // ignora
+        }
+      }
+    }
+
+    // 4) Remove a cena por último (depois de pausar o loop/render)
+    if (cena) {
+      try {
+        cena.parentNode?.removeChild(cena);
+      } catch {
+        // ignora
+      }
+    }
+
+    limparResiduosGlobaisAr(container);
+
+    if (atualizarEstado) {
+      setCameraAtiva(false);
+      setMarcadorDetectado(false);
     }
   }
 
-  if (!dadosTerritorio || !artefatoAr) {
+  const missaoRelacionada = useMemo(
+    () => missao?.nome_missao || 'Missão não selecionada',
+    [missao],
+  );
+
+  async function lidarComColeta() {
+    if (!item || !marcadorDetectado || coletando) return;
+
+    setColetando(true);
+
+    // Fecha a câmera imediatamente para não deixar o stream ativo após a coleta.
+    finalizarMotorAr({ atualizarEstado: true });
+    aoEncerrar?.();
+
+    try {
+      await aoColetar?.(item);
+    } catch (erroAtual) {
+      if (componenteMontadoRef.current) {
+        setMensagem(erroAtual?.message || 'Não foi possível coletar o item agora.');
+      }
+    } finally {
+      if (componenteMontadoRef.current) {
+        setColetando(false);
+      }
+    }
+  }
+
+  if (!regiao || !missao) {
     return (
       <section className="leitor-qr">
         <div className="leitor-qr__caixa">
           <p className="leitor-qr__status">
-            Nenhum artefato de realidade aumentada foi configurado para este território.
+            Selecione uma missão para abrir o leitor e preparar a coleta.
           </p>
         </div>
       </section>
@@ -384,26 +530,21 @@ export function LeitorQr({
   }
 
   return (
-    <section className="leitor-qr">
+    <section className={`leitor-qr ${modo === 'modal' ? 'leitor-qr--modal' : ''}`}>
       <div className="leitor-qr__caixa">
-        <div className="leitor-qr__cabecalho">
-          <span className="leitor-qr__territorio">{dadosTerritorio.icone} {dadosTerritorio.nome}</span>
-          <h3>{artefatoAr.titulo}</h3>
-          <p>{artefatoAr.descricao}</p>
-        </div>
-
         <div className="leitor-qr__viewport">
           {pronto ? (
             <div ref={referenciaCena} className="leitor-qr__cena">
               <a-scene
+                key={`${regiao?.id_regiao || 'r'}-${missao?.id_missao || 'm'}-${item?.id_item || 'i'}`}
                 embedded
                 arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
                 renderer="antialias: true; alpha: true; colorManagement: true;"
                 vr-mode-ui="enabled: false"
                 device-orientation-permission-ui="enabled: false"
               >
-                <a-marker preset="hiro">
-                  <ConteudoMarcador artefato={artefatoAr} />
+                <a-marker ref={marcadorRef} preset="hiro">
+                  <ConteudoMarcador item={item} />
                 </a-marker>
                 <a-entity camera />
               </a-scene>
@@ -416,42 +557,45 @@ export function LeitorQr({
               </div>
             </div>
           )}
-        </div>
 
-        <div className="leitor-qr__info">
-          <p>
-            Aponte a câmera para o marcador `hiro` para visualizar o objeto 3D
-            do território em realidade aumentada.
-          </p>
-          {!cameraAtiva && pronto && !erroCamera && (
-            <p className="leitor-qr__status">
-              Aguardando inicialização da câmera...
-            </p>
-          )}
-          <p>
-            Missão vinculada: <strong>{missaoRelacionada}</strong>
-          </p>
-          <p>
-            Item da coleta: <strong>{artefatoAr.item.nome}</strong>
-          </p>
-          {(erroCamera || erro) && (
-            <p className="leitor-qr__erro-texto">{erroCamera || erro}</p>
-          )}
-          {coletadoNoPainel && (
-            <p className="leitor-qr__coletado">
-              O item foi adicionado ao inventário do personagem.
-            </p>
-          )}
-        </div>
+          <div className="leitor-qr__overlay">
+            <div className="leitor-qr__overlay-topo">
+              <span className="leitor-qr__territorio">{regiao.nome_regiao}</span>
+              <strong>{item?.nome_item || 'Sem item pendente'}</strong>
+            </div>
 
-        <button
-          type="button"
-          className="leitor-qr__botao-coletar"
-          onClick={lidarComColeta}
-          disabled={coletadoNoPainel}
-        >
-          Coletar
-        </button>
+            <div className="leitor-qr__overlay-status">
+              {!cameraAtiva && pronto && !erroCamera && (
+                <span className="leitor-qr__status">Aguardando câmera...</span>
+              )}
+              <span>
+                Marcador: <strong>{marcadorDetectado ? 'Detectado' : 'Não detectado'}</strong>
+              </span>
+              {(erroCamera || erro) && (
+                <span className="leitor-qr__erro-texto">{erroCamera || erro}</span>
+              )}
+              {mensagem && (
+                <span className={mensagem.includes('sucesso') || mensagem.includes('inventário') ? 'leitor-qr__coletado' : 'leitor-qr__status'}>
+                  {mensagem}
+                </span>
+              )}
+            </div>
+
+            <div className="leitor-qr__overlay-base">
+              <span className="leitor-qr__status">
+                Missão: <strong>{missaoRelacionada}</strong>
+              </span>
+              <button
+                type="button"
+                className="leitor-qr__botao-coletar"
+                onClick={lidarComColeta}
+                disabled={!item || !marcadorDetectado || coletando}
+              >
+                {coletando ? 'Coletando...' : 'Coletar'}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
