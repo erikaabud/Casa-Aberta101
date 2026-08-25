@@ -71,6 +71,7 @@ CREATE TABLE item (
     descricao_item TEXT NOT NULL,
     id_missao INT NOT NULL,
     id_classe INT NOT NULL,
+    quantidade_necessaria INT NOT NULL DEFAULT 1,
     caminho_imagem VARCHAR(200) NOT NULL,
     FOREIGN KEY (id_missao) REFERENCES missao(id_missao) ON DELETE CASCADE,
     FOREIGN KEY (id_classe) REFERENCES classe(id_classe) ON DELETE CASCADE

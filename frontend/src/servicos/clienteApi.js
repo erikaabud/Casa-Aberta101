@@ -28,7 +28,9 @@ export async function requisitarJson(caminho, configuracao = {}) {
       detalhe = '';
     }
 
-    throw new Error(detalhe || `Falha na requisição: ${resposta.status}`);
+    const erro = new Error(detalhe || `Falha na requisição: ${resposta.status}`);
+    erro.status = resposta.status;
+    throw erro;
   }
 
   const texto = await resposta.text();

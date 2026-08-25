@@ -101,8 +101,67 @@ function ModeloArFallback() {
   );
 }
 
-function ConteudoMarcador() {
+function ConteudoMarcador({ item }) {
+  const caminho = item?.caminho_imagem;
+
+  if (caminho) {
+    return (
+      <a-entity
+        gltf-model={`url(${caminho})`}
+        position="0 0.25 0"
+        rotation="0 0 0"
+        scale="0.45 0.45 0.45"
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 9000; easing: linear"
+      />
+    );
+  }
+
   return <ModeloArFallback />;
+}
+
+function pararFluxoDeMidia(elemento) {
+  const fluxo = elemento?.srcObject;
+  if (fluxo?.getTracks) {
+    fluxo.getTracks().forEach((trilha) => trilha.stop());
+  }
+
+  if (elemento) {
+    try {
+      elemento.srcObject = null;
+    } catch {
+      // ignora
+    }
+  }
+}
+
+function limparResiduosGlobaisAr(containerAtual = null) {
+  const seletores = [
+    '#arjs-video',
+    'body > video',
+    'canvas[data-aframe-canvas]',
+    '.a-canvas',
+    '.arjs-loader',
+    '.a-loader-title',
+    '.a-enter-vr',
+    '.a-orientation-modal',
+    'body > a-scene',
+  ];
+
+  const elementos = Array.from(document.querySelectorAll(seletores.join(', ')));
+
+  elementos.forEach((elemento) => {
+    if (containerAtual?.contains(elemento)) return;
+
+    if (elemento instanceof HTMLVideoElement) {
+      pararFluxoDeMidia(elemento);
+    }
+
+    try {
+      elemento.remove();
+    } catch {
+      // ignora
+    }
+  });
 }
 
 export function LeitorQr({
@@ -110,6 +169,8 @@ export function LeitorQr({
   missao,
   item,
   aoColetar,
+  aoEncerrar,
+  modo = 'painel',
 }) {
   const { pronto, erro } = useMotorAr();
   const referenciaCena = useRef(null);
@@ -119,6 +180,8 @@ export function LeitorQr({
   const [marcadorDetectado, setMarcadorDetectado] = useState(false);
   const [coletando, setColetando] = useState(false);
   const [mensagem, setMensagem] = useState('');
+  const estilosOriginaisDocumento = useRef(null);
+  const componenteMontadoRef = useRef(true);
 
   useEffect(() => {
     setErroCamera(null);
@@ -126,6 +189,46 @@ export function LeitorQr({
     setMarcadorDetectado(false);
     setMensagem('');
   }, [regiao?.id_regiao, missao?.id_missao, item?.id_item]);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    estilosOriginaisDocumento.current = {
+      htmlStyle: html.getAttribute('style'),
+      bodyStyle: body.getAttribute('style'),
+    };
+
+    if (modo === 'modal') {
+      html.classList.add('leitor-qr-scroll-lock');
+      body.classList.add('leitor-qr-scroll-lock');
+      html.style.overflow = 'hidden';
+      body.style.overflow = 'hidden';
+      html.style.height = '100%';
+      body.style.height = '100%';
+    }
+
+    return () => {
+      limparResiduosGlobaisAr(referenciaCena.current);
+
+      html.classList.remove('leitor-qr-scroll-lock');
+      body.classList.remove('leitor-qr-scroll-lock');
+
+      const estilosOriginais = estilosOriginaisDocumento.current;
+
+      if (estilosOriginais?.htmlStyle) {
+        html.setAttribute('style', estilosOriginais.htmlStyle);
+      } else {
+        html.removeAttribute('style');
+      }
+
+      if (estilosOriginais?.bodyStyle) {
+        body.setAttribute('style', estilosOriginais.bodyStyle);
+      } else {
+        body.removeAttribute('style');
+      }
+    };
+  }, [modo]);
 
   useEffect(() => {
     const marcador = marcadorRef.current;
@@ -315,21 +418,77 @@ export function LeitorQr({
 
   useEffect(() => {
     return () => {
-      const videoAr =
-        document.querySelector('#arjs-video') ||
-        document.querySelector('body > video');
-
-      const fluxo = videoAr?.srcObject;
-
-      if (fluxo?.getTracks) {
-        fluxo.getTracks().forEach((trilha) => trilha.stop());
-      }
-
-      if (videoAr) {
-        videoAr.srcObject = null;
-      }
+      componenteMontadoRef.current = false;
+      finalizarMotorAr({ atualizarEstado: false });
     };
   }, []);
+
+  function finalizarMotorAr({ atualizarEstado = true } = {}) {
+    // 1) Pausa a cena do A-Frame (evita callbacks do AR.js tentando ler marker após desmontar)
+    const cena = referenciaCena.current?.querySelector('a-scene');
+    if (cena) {
+      try {
+        cena.pause();
+      } catch {
+        // ignora
+      }
+      try {
+        if (cena.renderer?.setAnimationLoop) {
+          cena.renderer.setAnimationLoop(null);
+        }
+        cena.renderer?.dispose?.();
+      } catch {
+        // ignora
+      }
+    }
+
+    // 2) Para a câmera (tracks)
+    const videoAr =
+      document.querySelector('#arjs-video') ||
+      document.querySelector('body > video');
+
+    pararFluxoDeMidia(videoAr);
+
+    // 3) Remove vídeo/canvas do AR.js (evita "vazar" layout na ficha)
+    const container = referenciaCena.current;
+    const elementosAr = [
+      ...(container ? Array.from(container.querySelectorAll('video[data-ar-dentro-do-modal="true"], canvas[data-ar-dentro-do-modal="true"], .a-canvas[data-ar-dentro-do-modal="true"]')) : []),
+    ];
+
+    elementosAr.forEach((elemento) => {
+      try {
+        elemento.remove();
+      } catch {
+        // ignora
+      }
+    });
+
+    if (videoAr) {
+      if (videoAr.dataset?.arDentroDoModal === 'true') {
+        try {
+          videoAr.remove();
+        } catch {
+          // ignora
+        }
+      }
+    }
+
+    // 4) Remove a cena por último (depois de pausar o loop/render)
+    if (cena) {
+      try {
+        cena.parentNode?.removeChild(cena);
+      } catch {
+        // ignora
+      }
+    }
+
+    limparResiduosGlobaisAr(container);
+
+    if (atualizarEstado) {
+      setCameraAtiva(false);
+      setMarcadorDetectado(false);
+    }
+  }
 
   const missaoRelacionada = useMemo(
     () => missao?.nome_missao || 'Missão não selecionada',
@@ -340,13 +499,21 @@ export function LeitorQr({
     if (!item || !marcadorDetectado || coletando) return;
 
     setColetando(true);
+
+    // Fecha a câmera imediatamente para não deixar o stream ativo após a coleta.
+    finalizarMotorAr({ atualizarEstado: true });
+    aoEncerrar?.();
+
     try {
-      const resposta = await aoColetar?.(item);
-      setMensagem(resposta?.mensagem || `Item "${item.nome_item}" coletado com sucesso.`);
+      await aoColetar?.(item);
     } catch (erroAtual) {
-      setMensagem(erroAtual?.message || 'Não foi possível coletar o item agora.');
+      if (componenteMontadoRef.current) {
+        setMensagem(erroAtual?.message || 'Não foi possível coletar o item agora.');
+      }
     } finally {
-      setColetando(false);
+      if (componenteMontadoRef.current) {
+        setColetando(false);
+      }
     }
   }
 
@@ -363,21 +530,13 @@ export function LeitorQr({
   }
 
   return (
-    <section className="leitor-qr">
+    <section className={`leitor-qr ${modo === 'modal' ? 'leitor-qr--modal' : ''}`}>
       <div className="leitor-qr__caixa">
-        <div className="leitor-qr__cabecalho">
-          <span className="leitor-qr__territorio">{regiao.nome_regiao}</span>
-          <h3>{item?.nome_item || 'Sem item pendente'}</h3>
-          <p>
-            A câmera do modal vai procurar o marcador `hiro`. Quando ele aparecer,
-            o objeto 3D será projetado e o botão de coleta será liberado.
-          </p>
-        </div>
-
         <div className="leitor-qr__viewport">
           {pronto ? (
             <div ref={referenciaCena} className="leitor-qr__cena">
               <a-scene
+                key={`${regiao?.id_regiao || 'r'}-${missao?.id_missao || 'm'}-${item?.id_item || 'i'}`}
                 embedded
                 arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
                 renderer="antialias: true; alpha: true; colorManagement: true;"
@@ -385,7 +544,7 @@ export function LeitorQr({
                 device-orientation-permission-ui="enabled: false"
               >
                 <a-marker ref={marcadorRef} preset="hiro">
-                  <ConteudoMarcador />
+                  <ConteudoMarcador item={item} />
                 </a-marker>
                 <a-entity camera />
               </a-scene>
@@ -398,44 +557,45 @@ export function LeitorQr({
               </div>
             </div>
           )}
-        </div>
 
-        <div className="leitor-qr__info">
-          <p>
-            Aponte a câmera para o marcador `hiro` para visualizar o objeto 3D de teste.
-          </p>
-          {!cameraAtiva && pronto && !erroCamera && (
-            <p className="leitor-qr__status">
-              Aguardando inicialização da câmera...
-            </p>
-          )}
-          <p>
-            Missão vinculada: <strong>{missaoRelacionada}</strong>
-          </p>
-          <p>
-            Item da coleta: <strong>{item?.nome_item || 'Nenhum item pendente'}</strong>
-          </p>
-          <p>
-            Marcador detectado: <strong>{marcadorDetectado ? 'Sim' : 'Ainda não'}</strong>
-          </p>
-          {(erroCamera || erro) && (
-            <p className="leitor-qr__erro-texto">{erroCamera || erro}</p>
-          )}
-          {mensagem && (
-            <p className={mensagem.includes('sucesso') || mensagem.includes('inventário') ? 'leitor-qr__coletado' : 'leitor-qr__status'}>
-              {mensagem}
-            </p>
-          )}
-        </div>
+          <div className="leitor-qr__overlay">
+            <div className="leitor-qr__overlay-topo">
+              <span className="leitor-qr__territorio">{regiao.nome_regiao}</span>
+              <strong>{item?.nome_item || 'Sem item pendente'}</strong>
+            </div>
 
-        <button
-          type="button"
-          className="leitor-qr__botao-coletar"
-          onClick={lidarComColeta}
-          disabled={!item || !marcadorDetectado || coletando}
-        >
-          {coletando ? 'Coletando...' : 'Coletar'}
-        </button>
+            <div className="leitor-qr__overlay-status">
+              {!cameraAtiva && pronto && !erroCamera && (
+                <span className="leitor-qr__status">Aguardando câmera...</span>
+              )}
+              <span>
+                Marcador: <strong>{marcadorDetectado ? 'Detectado' : 'Não detectado'}</strong>
+              </span>
+              {(erroCamera || erro) && (
+                <span className="leitor-qr__erro-texto">{erroCamera || erro}</span>
+              )}
+              {mensagem && (
+                <span className={mensagem.includes('sucesso') || mensagem.includes('inventário') ? 'leitor-qr__coletado' : 'leitor-qr__status'}>
+                  {mensagem}
+                </span>
+              )}
+            </div>
+
+            <div className="leitor-qr__overlay-base">
+              <span className="leitor-qr__status">
+                Missão: <strong>{missaoRelacionada}</strong>
+              </span>
+              <button
+                type="button"
+                className="leitor-qr__botao-coletar"
+                onClick={lidarComColeta}
+                disabled={!item || !marcadorDetectado || coletando}
+              >
+                {coletando ? 'Coletando...' : 'Coletar'}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

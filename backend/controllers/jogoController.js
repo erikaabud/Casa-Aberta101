@@ -7,6 +7,7 @@ async function obterMinhaFicha(req, res) {
     const ficha = await jogoModel.obterFichaDoJogador(idUsuario);
     return res.json(ficha);
   } catch (erro) {
+    console.error("[jogoController] erro ao obter ficha:", erro);
     return res
       .status(erro.status || 500)
       .json({ erro: erro.message || "Falha ao carregar a ficha do jogador." });
@@ -31,6 +32,7 @@ async function coletarItem(req, res) {
 
     return res.json(resultado);
   } catch (erro) {
+    console.error("[jogoController] erro ao coletar item:", erro);
     return res
       .status(erro.status || 500)
       .json({ erro: erro.message || "Falha ao coletar o item." });
