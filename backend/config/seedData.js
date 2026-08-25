@@ -1,5 +1,27 @@
 const pool = require("./db");
 
+let cacheTemQuantidadeNecessaria = null;
+
+async function temColunaQuantidadeNecessaria() {
+  if (cacheTemQuantidadeNecessaria !== null) return cacheTemQuantidadeNecessaria;
+  try {
+    const nomeBanco = process.env.DB_NAME || "rpg";
+    const [linhas] = await pool.execute(
+      `SELECT 1
+       FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = ?
+         AND TABLE_NAME = 'item'
+         AND COLUMN_NAME = 'quantidade_necessaria'
+       LIMIT 1`,
+      [nomeBanco],
+    );
+    cacheTemQuantidadeNecessaria = linhas.length > 0;
+  } catch {
+    cacheTemQuantidadeNecessaria = false;
+  }
+  return cacheTemQuantidadeNecessaria;
+}
+
 const CLASSES_BASE = [
   {
     nome: "Guerreiro",
@@ -175,6 +197,7 @@ async function garantirHabilidadesBase() {
 }
 
 async function garantirRegioesMissoesItensBase() {
+  const temQtd = await temColunaQuantidadeNecessaria();
   for (const regiao of REGIOES_BASE) {
     await pool.execute(
       "INSERT IGNORE INTO regiao (nome_regiao, descricao_regiao) VALUES (?, ?)",
@@ -220,11 +243,26 @@ async function garantirRegioesMissoesItensBase() {
 
         if (itemExistente.length) continue;
 
-        await pool.execute(
-          `INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, caminho_imagem)
-           VALUES (?, ?, ?, ?, ?)`,
-          [item.nome, item.descricao, idMissao, idClasseItem, item.caminhoImagem],
-        );
+        if (temQtd) {
+          await pool.execute(
+            `INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              item.nome,
+              item.descricao,
+              idMissao,
+              idClasseItem,
+              item.quantidadeNecessaria || 1,
+              item.caminhoImagem,
+            ],
+          );
+        } else {
+          await pool.execute(
+            `INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, caminho_imagem)
+             VALUES (?, ?, ?, ?, ?)`,
+            [item.nome, item.descricao, idMissao, idClasseItem, item.caminhoImagem],
+          );
+        }
       }
     }
   }

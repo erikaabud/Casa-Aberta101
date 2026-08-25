@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contextos/AuthContext';
 import { BarraModoDispositivo } from '../componentes/ficha-rpg/BarraModoDispositivo';
 import { VisualizacaoDesktop } from '../componentes/ficha-rpg/VisualizacaoDesktop';
@@ -11,10 +12,12 @@ const ICONES_REGIAO = {
   floresta_sombria: '🌲',
   deserto_ardente: '🏜️',
   montanhas_geladas: '❄️',
+  casa_aberta: '🏠',
 };
 
 export default function PaginaFichaRpg() {
-  const { equipe } = useAuth();
+  const navegar = useNavigate();
+  const { equipe, sair } = useAuth();
   const [ficha, setFicha] = useState(null);
   const [modoDispositivo, setModoDispositivo] = useState('auto');
   const [abaAtiva, setAbaAtiva] = useState('missoes');
@@ -24,19 +27,32 @@ export default function PaginaFichaRpg() {
   const [territorioId, setTerritorioId] = useState('');
   const [missaoSelecionadaId, setMissaoSelecionadaId] = useState(null);
 
-  async function carregarFicha() {
-    setCarregando(true);
+  async function carregarFicha({ exibirCarregando = true, limparMensagem = true } = {}) {
+    if (exibirCarregando) {
+      setCarregando(true);
+    }
+
     try {
       const resposta = await obterMinhaFicha();
       setFicha(resposta);
-      setMensagemSistema('');
+      if (limparMensagem) {
+        setMensagemSistema('');
+      }
 
       const primeiraRegiao = resposta?.regioes?.[0];
       setTerritorioId((atual) => atual || primeiraRegiao?.slug || '');
     } catch (erro) {
+      if (erro?.status === 401) {
+        // Token ausente/expirado: limpa a sessão e volta para o login
+        sair();
+        navegar('/login', { replace: true });
+        return;
+      }
       setMensagemSistema(erro?.message || 'Não foi possível carregar a ficha do jogo.');
     } finally {
-      setCarregando(false);
+      if (exibirCarregando) {
+        setCarregando(false);
+      }
     }
   }
 
@@ -78,21 +94,64 @@ export default function PaginaFichaRpg() {
   );
 
   const itemSelecionado = useMemo(
-    () => missaoSelecionada?.itens?.find((item) => !item.coletado_por_usuario) || null,
+    () =>
+      missaoSelecionada?.itens?.find((item) => {
+        const necessario = Number(item.quantidade_necessaria || 1);
+        const atual = Number(item.quantidade_usuario || 0);
+        return atual < necessario;
+      }) || null,
     [missaoSelecionada],
   );
 
   async function lidarColeta(item) {
-    const resposta = await coletarItemHiro(item.id_item);
-    await carregarFicha();
-    setMensagemSistema(resposta?.mensagem || 'Item coletado com sucesso.');
-    return resposta;
+    setMostrarModalQr(false);
+    setMensagemSistema('Item coletado. Atualizando a ficha...');
+
+    try {
+      const resposta = await coletarItemHiro(item.id_item);
+      await carregarFicha({ exibirCarregando: false, limparMensagem: false });
+      setMensagemSistema(resposta?.mensagem || 'Item coletado com sucesso.');
+      return resposta;
+    } catch (erro) {
+      setMensagemSistema(erro?.message || 'Não foi possível coletar o item agora.');
+      throw erro;
+    }
   }
 
-  if (carregando || !ficha?.personagem) {
+  if (carregando) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <p>Carregando ficha do jogo...</p>
+      </div>
+    );
+  }
+
+  if (!ficha?.personagem) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: '1.5rem' }}>
+        <div style={{ maxWidth: '36rem', width: '100%', textAlign: 'center' }}>
+          <h2 style={{ color: '#fff2bc', marginBottom: '0.75rem' }}>Não foi possível carregar a ficha</h2>
+          <p style={{ color: '#cbd5e1', marginBottom: '1rem' }}>
+            {mensagemSistema || 'O backend retornou um erro ao montar a ficha. Verifique o console do backend para ver o motivo.'}
+          </p>
+          <button
+            type="button"
+            onClick={carregarFicha}
+            style={{
+              border: '1px solid #d4af37',
+              background: 'linear-gradient(135deg, #d4af37, #8a6711)',
+              color: '#070b12',
+              borderRadius: '0.8rem',
+              padding: '0.9rem 1rem',
+              fontSize: '1rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            Tentar novamente
+          </button>
+        </div>
       </div>
     );
   }

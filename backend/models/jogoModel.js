@@ -1,6 +1,31 @@
 const pool = require("../config/db");
 const { garantirDadosBase } = require("../config/seedData");
 
+let cacheTemQuantidadeNecessaria = null;
+
+async function temColunaQuantidadeNecessaria() {
+  if (cacheTemQuantidadeNecessaria !== null) return cacheTemQuantidadeNecessaria;
+
+  try {
+    const nomeBanco = process.env.DB_NAME || "rpg";
+    const [linhas] = await pool.execute(
+      `SELECT 1
+       FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = ?
+         AND TABLE_NAME = 'item'
+         AND COLUMN_NAME = 'quantidade_necessaria'
+       LIMIT 1`,
+      [nomeBanco],
+    );
+    cacheTemQuantidadeNecessaria = linhas.length > 0;
+  } catch {
+    // Se falhar aqui, provavelmente a conexão do banco está com problema. Mantém false para não quebrar mais ainda.
+    cacheTemQuantidadeNecessaria = false;
+  }
+
+  return cacheTemQuantidadeNecessaria;
+}
+
 function slugificarRegiao(nome = "") {
   return nome
     .normalize("NFD")
@@ -64,6 +89,7 @@ async function listarMembrosDaEquipe(idEquipe) {
 }
 
 async function listarInventarioDoUsuario(idUsuario) {
+  const temQtd = await temColunaQuantidadeNecessaria();
   const [linhas] = await pool.execute(
     `SELECT
         ei.id_item,
@@ -71,6 +97,7 @@ async function listarInventarioDoUsuario(idUsuario) {
         i.descricao_item,
         ei.estado_item,
         ei.quantidade,
+        ${temQtd ? "i.quantidade_necessaria" : "1"} AS quantidade_necessaria,
         i.id_missao,
         m.nome_missao,
         r.id_regiao,
@@ -95,6 +122,7 @@ async function listarInventarioDoUsuario(idUsuario) {
 }
 
 async function listarEstruturaDoJogo({ idUsuario, idEquipe }) {
+  const temQtd = await temColunaQuantidadeNecessaria();
   const [linhas] = await pool.execute(
     `SELECT
         r.id_regiao,
@@ -112,27 +140,10 @@ async function listarEstruturaDoJogo({ idUsuario, idEquipe }) {
         i.nome_item,
         i.descricao_item,
         i.caminho_imagem,
+        ${temQtd ? "i.quantidade_necessaria" : "1"} AS quantidade_necessaria,
         ci.nome_classe AS item_nome_classe,
-        CASE
-          WHEN EXISTS(
-            SELECT 1
-            FROM equipe_item ei_usuario
-            WHERE ei_usuario.id_usuario = ?
-              AND ei_usuario.id_item = i.id_item
-          ) THEN true
-          ELSE false
-        END AS coletado_por_usuario,
-        CASE
-          WHEN EXISTS(
-            SELECT 1
-            FROM equipe_item ei_equipe
-            INNER JOIN equipe_usuario eu_equipe
-              ON eu_equipe.id_usuario = ei_equipe.id_usuario
-            WHERE eu_equipe.id_equipe = ?
-              AND ei_equipe.id_item = i.id_item
-          ) THEN true
-          ELSE false
-        END AS coletado_pela_equipe
+        COALESCE(ei_usuario.quantidade, 0) AS quantidade_usuario,
+        COALESCE(ei_equipe.quantidade, 0) AS quantidade_equipe
      FROM regiao r
      LEFT JOIN missao m
        ON m.id_regiao = r.id_regiao
@@ -143,10 +154,28 @@ async function listarEstruturaDoJogo({ idUsuario, idEquipe }) {
       AND p.id_missao = m.id_missao
      LEFT JOIN item i
        ON i.id_missao = m.id_missao
+     LEFT JOIN equipe_item ei_usuario
+       ON ei_usuario.id_item = i.id_item
+      AND ei_usuario.id_usuario = ?
+     LEFT JOIN (
+        SELECT
+          ei.id_item,
+          SUM(ei.quantidade) AS quantidade
+        FROM equipe_item ei
+        INNER JOIN equipe_usuario eu
+          ON eu.id_usuario = ei.id_usuario
+        WHERE eu.id_equipe = ?
+        GROUP BY ei.id_item
+     ) ei_equipe
+       ON ei_equipe.id_item = i.id_item
      LEFT JOIN classe ci
        ON ci.id_classe = i.id_classe
      ORDER BY r.id_regiao ASC, m.id_missao ASC, i.id_item ASC`,
-    [idUsuario, idEquipe, idEquipe],
+    // Placeholders (na ordem):
+    // 1) progresso: p.id_equipe
+    // 2) item coletado pelo usuário: ei_usuario.id_usuario
+    // 3) quantidade coletada pela equipe: eu.id_equipe (subquery)
+    [idEquipe, idUsuario, idEquipe],
   );
 
   const regioes = [];
@@ -196,17 +225,41 @@ async function listarEstruturaDoJogo({ idUsuario, idEquipe }) {
       nome_item: linha.nome_item,
       descricao_item: linha.descricao_item,
       caminho_imagem: linha.caminho_imagem,
+      quantidade_necessaria: Number(linha.quantidade_necessaria || 1),
       classe: linha.item_nome_classe,
-      coletado_por_usuario: Boolean(linha.coletado_por_usuario),
-      coletado_pela_equipe: Boolean(linha.coletado_pela_equipe),
+      quantidade_usuario: Number(linha.quantidade_usuario || 0),
+      quantidade_equipe: Number(linha.quantidade_equipe || 0),
+      coletado_por_usuario:
+        Number(linha.quantidade_usuario || 0) >= Number(linha.quantidade_necessaria || 1),
+      coletado_pela_equipe:
+        Number(linha.quantidade_equipe || 0) >= Number(linha.quantidade_necessaria || 1),
     });
   }
 
   for (const regiao of regioes) {
     regiao.missoes = regiao.missoes.map((missao) => {
-      const totalItens = missao.itens.length;
-      const itensColetadosEquipe = missao.itens.filter((item) => item.coletado_pela_equipe).length;
-      const itensColetadosUsuario = missao.itens.filter((item) => item.coletado_por_usuario).length;
+      const totalItens = missao.itens.reduce(
+        (total, item) => total + Number(item.quantidade_necessaria || 1),
+        0,
+      );
+      const itensColetadosEquipe = missao.itens.reduce(
+        (total, item) =>
+          total +
+          Math.min(
+            Number(item.quantidade_equipe || 0),
+            Number(item.quantidade_necessaria || 1),
+          ),
+        0,
+      );
+      const itensColetadosUsuario = missao.itens.reduce(
+        (total, item) =>
+          total +
+          Math.min(
+            Number(item.quantidade_usuario || 0),
+            Number(item.quantidade_necessaria || 1),
+          ),
+        0,
+      );
       const concluida =
         missao.situacao === "Concluido" ||
         (totalItens > 0 && itensColetadosEquipe >= totalItens);
@@ -286,17 +339,24 @@ async function obterFichaDoJogador(idUsuario) {
 
 async function atualizarProgressoDaMissao({ idEquipe, idMissao, conexao }) {
   const executor = conexao || pool;
+  const temQtd = await temColunaQuantidadeNecessaria();
 
   const [totais] = await executor.execute(
     `SELECT
-        COUNT(DISTINCT i.id_item) AS total_itens,
-        COUNT(DISTINCT CASE WHEN eu.id_usuario IS NOT NULL THEN ei.id_item END) AS itens_coletados
+        COALESCE(SUM(${temQtd ? "i.quantidade_necessaria" : "1"}), 0) AS total_itens,
+        COALESCE(SUM(LEAST(IFNULL(ei_total.quantidade, 0), ${temQtd ? "i.quantidade_necessaria" : "1"})), 0) AS itens_coletados
      FROM item i
-     LEFT JOIN equipe_item ei
-       ON ei.id_item = i.id_item
-     LEFT JOIN equipe_usuario eu
-       ON eu.id_usuario = ei.id_usuario
-      AND eu.id_equipe = ?
+     LEFT JOIN (
+       SELECT
+         ei.id_item,
+         SUM(ei.quantidade) AS quantidade
+       FROM equipe_item ei
+       INNER JOIN equipe_usuario eu
+         ON eu.id_usuario = ei.id_usuario
+       WHERE eu.id_equipe = ?
+       GROUP BY ei.id_item
+     ) ei_total
+       ON ei_total.id_item = i.id_item
      WHERE i.id_missao = ?`,
     [idEquipe, idMissao],
   );
@@ -323,6 +383,7 @@ async function atualizarProgressoDaMissao({ idEquipe, idMissao, conexao }) {
 
 async function coletarItemPorMarcador({ idUsuario, idItem, marcador }) {
   await garantirDadosBase();
+  const temQtd = await temColunaQuantidadeNecessaria();
 
   if (String(marcador || "").toLowerCase() !== "hiro") {
     const erro = new Error("O marcador informado é inválido. Use o marcador HIRO.");
@@ -344,6 +405,7 @@ async function coletarItemPorMarcador({ idUsuario, idItem, marcador }) {
         i.descricao_item,
         i.id_missao,
         i.caminho_imagem,
+        ${temQtd ? "i.quantidade_necessaria" : "1"} AS quantidade_necessaria,
         m.nome_missao,
         r.nome_regiao
      FROM item i
@@ -364,11 +426,14 @@ async function coletarItemPorMarcador({ idUsuario, idItem, marcador }) {
   }
 
   const [jaColetado] = await pool.execute(
-    "SELECT id_item FROM equipe_item WHERE id_usuario = ? AND id_item = ? LIMIT 1",
+    "SELECT id_item, quantidade FROM equipe_item WHERE id_usuario = ? AND id_item = ? LIMIT 1",
     [idUsuario, idItem],
   );
 
-  if (jaColetado.length) {
+  const totalNecessario = Number(item.quantidade_necessaria || 1);
+  const quantidadeAtual = Number(jaColetado?.[0]?.quantidade || 0);
+
+  if (jaColetado.length && quantidadeAtual >= totalNecessario) {
     const progresso = await atualizarProgressoDaMissao({
       idEquipe: jogador.id_equipe,
       idMissao: item.id_missao,
@@ -378,7 +443,7 @@ async function coletarItemPorMarcador({ idUsuario, idItem, marcador }) {
       ja_coletado: true,
       item,
       progresso,
-      mensagem: "Este item já foi coletado e já está no seu inventário.",
+      mensagem: `Este item já foi coletado (${quantidadeAtual}/${totalNecessario}) e já está no seu inventário.`,
     };
   }
 
@@ -387,11 +452,20 @@ async function coletarItemPorMarcador({ idUsuario, idItem, marcador }) {
   try {
     await conexao.beginTransaction();
 
-    await conexao.execute(
-      `INSERT INTO equipe_item (id_usuario, id_item, estado_item, quantidade)
-       VALUES (?, ?, 'Normal', 1)`,
-      [idUsuario, idItem],
-    );
+    if (jaColetado.length) {
+      await conexao.execute(
+        `UPDATE equipe_item
+         SET quantidade = LEAST(quantidade + 1, ?)
+         WHERE id_usuario = ? AND id_item = ?`,
+        [totalNecessario, idUsuario, idItem],
+      );
+    } else {
+      await conexao.execute(
+        `INSERT INTO equipe_item (id_usuario, id_item, estado_item, quantidade)
+         VALUES (?, ?, 'Normal', 1)`,
+        [idUsuario, idItem],
+      );
+    }
 
     const progresso = await atualizarProgressoDaMissao({
       idEquipe: jogador.id_equipe,
@@ -405,7 +479,7 @@ async function coletarItemPorMarcador({ idUsuario, idItem, marcador }) {
       ja_coletado: false,
       item,
       progresso,
-      mensagem: `Item "${item.nome_item}" coletado com sucesso.`,
+      mensagem: `Item "${item.nome_item}" coletado com sucesso (${Math.min(quantidadeAtual + 1, totalNecessario)}/${totalNecessario}).`,
     };
   } catch (erro) {
     await conexao.rollback();
