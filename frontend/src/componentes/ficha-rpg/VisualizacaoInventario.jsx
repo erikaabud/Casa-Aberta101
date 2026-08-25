@@ -1,32 +1,137 @@
+import { useMemo, useState } from 'react';
 import './VisualizacaoInventario.css';
 
-function iconeItem(icone) { if (icone === 'espada') return '⚔️'; if (icone === 'escudo') return '🛡️'; return '✨'; }
-function estiloRaridade(raridade) {
-  if (raridade === 'lendario') return { '--cor-raridade': '#dd6b20', '--fundo-raridade': 'rgba(221, 107, 32, 0.12)' };
-  if (raridade === 'epico') return { '--cor-raridade': '#805ad5', '--fundo-raridade': 'rgba(128, 90, 213, 0.12)' };
-  if (raridade === 'raro') return { '--cor-raridade': '#3182ce', '--fundo-raridade': 'rgba(49, 130, 206, 0.12)' };
-  return { '--cor-raridade': '#d4af37', '--fundo-raridade': 'rgba(212, 175, 55, 0.12)' };
+const TOTAL_SLOTS = 6;
+
+function normalizarItem(item) {
+  if (!item) return null;
+
+  return {
+    ...item,
+    id_item: item.id_item ?? item.id ?? `item-${item.nome || 'sem-id'}`,
+    nome: item.nome_item || item.nome || 'Item sem nome',
+    descricao:
+      item.descricao_item ||
+      item.descricao ||
+      'Este item ainda não possui uma descrição cadastrada.',
+    quantidade: item.quantidade ?? 1,
+    regiao: item.nome_regiao || item.regiao || '',
+    missao: item.nome_missao || item.missao || '',
+    estado_item:
+      item.estado_item ||
+      (item.equipado ? 'Equipado' : 'Disponível'),
+  };
 }
 
-export function VisualizacaoInventario({ inventario, aoAlternarEquipamento }) {
+export function VisualizacaoInventario({ inventario = [] }) {
+  const [selectedIndex, setSelectedIndex] = useState(null);
+
+  const origemItens = Array.isArray(inventario) ? inventario : [];
+
+  const itemsData = useMemo(
+    () =>
+      Array.from(
+        { length: TOTAL_SLOTS },
+        (_, index) => normalizarItem(origemItens[index]),
+      ),
+    [origemItens],
+  );
+
+  const selectedItem =
+    selectedIndex === null ? null : itemsData[selectedIndex];
+
+  function handleSlotClick(index) {
+    const item = itemsData[index];
+
+    if (!item) {
+      setSelectedIndex(null);
+      return;
+    }
+
+    setSelectedIndex((current) =>
+      current === index ? null : index
+    );
+  }
+
   return (
     <section className="visualizacao-inventario">
-      <h2>Inventário e Equipamentos</h2>
-      <div className="visualizacao-inventario__lista">
-        {inventario.map((item) => (
-          <article key={item.id} className="visualizacao-inventario__card" style={estiloRaridade(item.raridade)} onClick={() => aoAlternarEquipamento(item.id)}>
-            <div className="visualizacao-inventario__topo">
-              <div className="visualizacao-inventario__icone">{iconeItem(item.icone)}</div>
-              <div>
-                <h3>{item.nome}</h3>
-                <span>{item.raridade}</span>
-              </div>
+      <div className="inventory-container">
+        <h1 className="inventory-title">🛡️ Inventário</h1>
+
+        <div className="inventory-grid" id="inventoryGrid">
+          {itemsData.map((item, index) => (
+            <div
+              key={item?.id_item ?? `empty-${index}`}
+              className={`inventory-slot ${item ? 'filled' : 'empty'
+                } ${selectedIndex === index ? 'selected' : ''}`}
+              data-index={index}
+              onClick={() => handleSlotClick(index)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  handleSlotClick(index);
+                }
+              }}
+              aria-label={
+                item
+                  ? `Selecionar ${item.nome}`
+                  : 'Slot vazio'
+              }
+            >
+              {item ? (
+                <div className="item-name">
+                  {item.nome}
+
+                  {item.quantidade > 1 && (
+                    <span className="item-quantity">
+                      x{item.quantidade}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="empty-slot">⚔️</div>
+              )}
             </div>
-            <strong>{item.bonus}</strong>
-            <p>{item.descricao}</p>
-            {item.equipado && <div className="visualizacao-inventario__tag">Equipado</div>}
-          </article>
-        ))}
+          ))}
+        </div>
+
+        <div className="item-detail" id="itemDetail">
+          {selectedItem ? (
+            <>
+              <h2>{selectedItem.nome}</h2>
+
+              <p>{selectedItem.descricao}</p>
+
+              {selectedItem.missao && (
+                <span>
+                  Missão: {selectedItem.missao}
+                </span>
+              )}
+
+              {selectedItem.regiao && (
+                <span>
+                  Região: {selectedItem.regiao}
+                </span>
+              )}
+
+              <span>
+                Estado: {selectedItem.estado_item}
+              </span>
+
+              <span>
+                Quantidade: {selectedItem.quantidade}
+              </span>
+            </>
+          ) : (
+            <p className="empty-message">
+              {origemItens.length
+                ? '⚔️ Selecione um item para ver seus detalhes'
+                : '⚔️ Nenhum item foi coletado ainda.'}
+            </p>
+          )}
+        </div>
       </div>
     </section>
   );

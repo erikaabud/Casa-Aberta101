@@ -1,12 +1,11 @@
 const classeModel = require("../models/classeModel");
+const { garantirDadosBase } = require("../config/seedData");
 
 async function listar(req, res) {
   try {
     const total = await classeModel.contarClasses();
-    const autoSeed = (process.env.AUTO_SEED_CLASSES || "true") === "true";
-
-    if (total === 0 && autoSeed) {
-      await classeModel.inserirClassesPadrao();
+    if (total === 0) {
+      await garantirDadosBase();
     }
 
     const classes = await classeModel.listarClasses();

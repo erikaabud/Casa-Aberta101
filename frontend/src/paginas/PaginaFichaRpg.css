@@ -1,5 +1,235 @@
-.pagina-ficha-rpg { min-height:100vh; background:#030712; color:#f7fafc; background-image:radial-gradient(circle at 50% 0%, rgba(212,175,55,.08) 0%, transparent 60%), radial-gradient(circle at 10% 90%, rgba(15,23,42,.8) 0%, transparent 50%); }
-.pagina-ficha-rpg__conteudo { padding:1.5rem; }
-.pagina-ficha-rpg__mensagem { margin:1rem auto 0; width:min(1100px, calc(100% - 2rem)); padding:.85rem 1rem; border-radius:.75rem; background:rgba(212,175,55,.14); border:1px solid rgba(212,175,55,.3); color:#fff2bc; }
-.pagina-ficha-rpg__somente-desktop { display:none; }
-@media (min-width:1024px) { .pagina-ficha-rpg__somente-mobile { display:none; } .pagina-ficha-rpg__somente-desktop { display:block; } }
+/* --- Seu CSS Original Mantido --- */
+.pagina-ficha-rpg {
+  min-height: 100vh;
+  background: #030712;
+  color: #f7fafc;
+  background-image: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, .08) 0%, transparent 60%), radial-gradient(circle at 10% 90%, rgba(15, 23, 42, .8) 0%, transparent 50%);
+}
+
+.pagina-ficha-rpg__conteudo {
+  padding: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.pagina-ficha-rpg__mensagem {
+  margin: 1rem auto 0;
+  width: min(1100px, calc(100% - 2rem));
+  padding: .85rem 1rem;
+  border-radius: .75rem;
+  background: rgba(212, 175, 55, .14);
+  border: 1px solid rgba(212, 175, 55, .3);
+  color: #fff2bc;
+}
+
+.pagina-ficha-rpg__somente-desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .pagina-ficha-rpg__somente-mobile {
+    display: none;
+  }
+  .pagina-ficha-rpg__somente-desktop {
+    display: block;
+  }
+}
+
+/* --- NOVOS ESTILOS DOS TERRITÓRIOS --- */
+
+/* Cabeçalho do Território */
+.territorio-cabecalho {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.territorio-cabecalho h1 {
+  color: #fbe396;
+  font-size: 1.8rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.territorio-cabecalho p {
+  color: #a09070;
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+}
+
+/* Títulos das Seções */
+.secao-titulo {
+  color: #d4af37;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+}
+
+.secao-poderes { margin-bottom: 3rem; }
+.secao-missoes { margin-bottom: 3rem; }
+.secao-inventario { margin-bottom: 3rem; }
+
+/* Grids */
+.grid-poderes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.2rem;
+}
+
+.grid-missoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.2rem;
+}
+
+.grid-inventario {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+/* Cards de Poderes */
+.card-poder {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 0.75rem;
+  padding: 1.2rem;
+  transition: 0.2s ease;
+}
+
+.card-poder:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  background: rgba(17, 24, 39, 0.9);
+}
+
+.card-poder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.card-poder h3 {
+  margin: 0;
+  color: #fbe396;
+  font-size: 1.05rem;
+}
+
+.card-poder-custo {
+  background: rgba(212, 175, 55, 0.12);
+  padding: 2px 10px;
+  border-radius: 0.5rem;
+  color: #d4af37;
+  font-size: 0.85rem;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.card-poder-info {
+  font-size: 0.8rem;
+  color: #a09070;
+  margin-bottom: 0.5rem;
+}
+
+.card-poder p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+/* Cards de Missões */
+.card-missao {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(4px);
+  border-left: 3px solid #d4af37;
+  border-radius: 0.75rem;
+  padding: 1rem 1.2rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  border-right: 1px solid rgba(212, 175, 55, 0.1);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+  transition: 0.2s ease;
+}
+
+.card-missao:hover {
+  background: rgba(17, 24, 39, 0.9);
+  border-left-color: #fbe396;
+}
+
+.card-missao h3 {
+  margin: 0 0 0.3rem 0;
+  color: #f7fafc;
+}
+
+.card-missao p {
+  margin: 0 0 0.8rem 0;
+  color: #a09070;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.card-missao-recompensa {
+  background: rgba(212, 175, 55, 0.12);
+  padding: 2px 12px;
+  border-radius: 0.5rem;
+  color: #d4af37;
+  font-size: 0.8rem;
+  display: inline-block;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* Cards de Inventário */
+.card-inventario-container {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 0.75rem;
+  padding: 1.2rem;
+}
+
+.item-inventario {
+  background: rgba(30, 41, 59, 0.5);
+  padding: 0.8rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s ease;
+}
+
+.item-inventario:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.item-inventario-nome {
+  color: #f7fafc;
+  font-size: 0.95rem;
+}
+
+.item-inventario-qtd {
+  background: rgba(30, 41, 59, 0.8);
+  padding: 2px 12px;
+  border-radius: 0.5rem;
+  color: #a09070;
+  font-size: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 600px) {
+  .grid-poderes, .grid-missoes {
+    grid-template-columns: 1fr;
+  }
+  .grid-inventario {
+    grid-template-columns: 1fr 1fr;
+  }
+}

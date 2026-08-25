@@ -1,23 +1,64 @@
 import { CabecalhoFicha } from './CabecalhoFicha';
-import { GradeAtributos } from './GradeAtributos';
 import { NavegacaoInferior } from './NavegacaoInferior';
 import { SecaoMissoes } from './SecaoMissoes';
 import { VisualizacaoInventario } from './VisualizacaoInventario';
-import { VisualizacaoPoderes } from './VisualizacaoPoderes';
-import { LeitorQr } from './LeitorQr';
 import './VisualizacaoMobile.css';
+import './VisualizacaoPoderes.css';
 
-export function VisualizacaoMobile({ personagem, poderTotal, abaAtiva, aoSelecionarAba, aoAtualizarNome, aoAtualizarClasse, aoGanharExperiencia, aoAtualizarAtributo, aoConcluirMissao, aoAlternarEquipamento, aoAbrirModalQr, aoResgatarQr }) {
+export function VisualizacaoMobile({
+  personagem,
+  equipe,
+  membros,
+  dadosTerritorio,
+  missaoSelecionadaId,
+  abaAtiva,
+  aoSelecionarAba,
+  aoSelecionarMissao,
+  aoAbrirModalQr,
+  inventario,
+}) {
   return (
     <section className="visualizacao-mobile">
-      <CabecalhoFicha nome={personagem.nome} classePersonagem={personagem.classe} aoAtualizarNome={aoAtualizarNome} aoAtualizarClasse={aoAtualizarClasse} />
+      <CabecalhoFicha
+        nome={personagem.nome}
+        classePersonagem={personagem.classe}
+        equipe={equipe}
+        membros={membros}
+      />
+
       <div className="visualizacao-mobile__rolagem">
-        {abaAtiva === 'poderes' && (<><GradeAtributos atributos={personagem.atributos} aoAtualizarAtributo={aoAtualizarAtributo} /><VisualizacaoPoderes habilidades={personagem.habilidades} /></>)}
-        {abaAtiva === 'inventario' && <VisualizacaoInventario inventario={personagem.inventario} aoAlternarEquipamento={aoAlternarEquipamento} />}
-        {abaAtiva === 'missoes' && <SecaoMissoes missoes={personagem.missoes} aoConcluirMissao={aoConcluirMissao} />}
-        {abaAtiva === 'qrcode' && <LeitorQr personagem={personagem} poderTotal={poderTotal} aoGanharExperiencia={aoGanharExperiencia} aoResgatarQr={aoResgatarQr} aoAbrirModalQr={aoAbrirModalQr} />}
+        {abaAtiva === 'inventario' && (
+          <VisualizacaoInventario
+            inventario={inventario}
+          />
+        )}
+
+        {abaAtiva === 'missoes' && (
+          <SecaoMissoes
+            missoes={dadosTerritorio?.missoes || []}
+            missaoSelecionadaId={missaoSelecionadaId}
+            aoSelecionarMissao={aoSelecionarMissao}
+          />
+        )}
+
+        {abaAtiva === 'qrcode' && (
+          <section className="visualizacao-poderes">
+            <h2>Leitor de marcador</h2>
+            <p>
+              Abra o modal para usar a câmera, ler o marcador `hiro`
+              e coletar o próximo item da missão selecionada.
+            </p>
+            <button type="button" className="visualizacao-poderes__botao" onClick={aoAbrirModalQr}>
+              Abrir leitor QR
+            </button>
+          </section>
+        )}
       </div>
-      <NavegacaoInferior abaAtiva={abaAtiva} aoSelecionarAba={aoSelecionarAba} />
+
+      <NavegacaoInferior
+        abaAtiva={abaAtiva}
+        aoSelecionarAba={aoSelecionarAba}
+      />
     </section>
   );
 }
