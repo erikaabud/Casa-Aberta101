@@ -6,6 +6,32 @@ export default function PaginaInicial() {
   const navegar = useNavigate();
   const { estaLogado, estaEmEquipe, usuario, sair } = useAuth();
 
+  // Função para ler o conteúdo da página em voz alta
+  const lerConteudo = () => {
+    // Verifica se o navegador suporta a API de síntese de fala
+    if ('speechSynthesis' in window) {
+      // Cancela qualquer fala em andamento
+      window.speechSynthesis.cancel();
+
+      // Seleciona o conteúdo principal da página
+      const conteudo = document.querySelector('.heroi') || document.body;
+      const texto = conteudo.textContent || '';
+      
+      // Cria uma nova instância de fala
+      const utterance = new SpeechSynthesisUtterance(texto);
+      
+      // Configurações de leitura
+      utterance.lang = 'pt-BR';
+      utterance.rate = 0.9; // Velocidade de leitura
+      utterance.pitch = 1; // Tom de voz
+      
+      // Fala o conteúdo
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert('Seu navegador não suporta a funcionalidade de leitura em voz alta.');
+    }
+  };
+
   return (
     <>
       <nav className="barra-navegacao">
@@ -33,6 +59,20 @@ export default function PaginaInicial() {
             )}
             <li><Link to="/sobre">Sobre</Link></li>
             <li><Link to="/desenvolvedores">Desenvolvedores</Link></li>
+            <li>
+              <Link
+                to="#"
+                className="link-acessibilidade"
+                onClick={(e) => {
+                  e.preventDefault();
+                  lerConteudo();
+                }}
+                aria-label="Ler conteúdo da página em voz alta"
+                title="Ler conteúdo da página"
+              >
+                🔊 Acessibilidade
+              </Link>
+            </li>
             <li><Link
               to="/jogar"
               className={`botao-rpg ${!estaEmEquipe ? 'desativado' : ''}`}
@@ -46,7 +86,7 @@ export default function PaginaInicial() {
             </Link>
             </li>
           </ul>
-          <div className="toggle-nav">☯</div>
+          {/* <div className="toggle-nav">☯</div> */}
         </div>
       </nav>
 
@@ -165,8 +205,8 @@ export default function PaginaInicial() {
             {estaLogado && <Link to="/equipe">Equipe</Link>}
             <Link to="/sobre">Profecia</Link>
           </div>
-          <div className="copiar-rodape">
-            <p>© 2026 - As Crônicas de Umbraeth - Todos os direitos reservados</p>
+          <div className="copiar-rodape" >
+            <p>© 2026 - As Crônicas de Umbraeth - FEITO PELA TURMA T.I 101 </p>
             <div className="runas-rodape">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
           </div>
         </div>
