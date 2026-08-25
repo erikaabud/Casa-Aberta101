@@ -206,7 +206,7 @@ export default function PaginaInicial() {
             <Link to="/sobre">Profecia</Link>
           </div>
           <div className="copiar-rodape" >
-            <p>© 2026 - As Crônicas de Umbraeth - Todos os direitos reservados</p>
+            <p>© 2026 - As Crônicas de Umbraeth - FEITO PELA TURMA T.I 101 </p>
             <div className="runas-rodape">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
           </div>
         </div>
