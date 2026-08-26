@@ -1,160 +1,161 @@
--- Dados de missões/itens (Casa Aberta)
+-- Dados oficiais de missões/itens (Casa Aberta)
+-- Observação importante:
+-- Este arquivo foi preparado para ficar SOMENTE com as missões/itens atuais do evento.
+-- Por isso, ele REMOVE todas as missões/itens anteriores da região "Casa Aberta"
+-- (incluindo progresso e itens já coletados relacionados a essas missões).
+--
 -- Como usar:
 -- 1) Crie o banco e aplique `EstruturaDoDb` + `ProceduresDoDb` primeiro.
 -- 2) Em seguida, execute este arquivo.
 
 START TRANSACTION;
 
--- Garante que existam as classes base (necessário por conta da FK item.id_classe -> classe.id_classe)
+-- 1) Classes base (FK item.id_classe -> classe.id_classe)
 INSERT IGNORE INTO classe (nome_classe, descricao_classe) VALUES
   ('Guerreiro', 'Combatente de linha de frente, resistente e especialista em proteger a equipe.'),
   ('Ladino', 'Especialista em precisão, armadilhas e movimentação rápida.'),
   ('Mago', 'Canaliza energia arcana para manipular o campo de batalha.'),
   ('Clérigo', 'Suporte sagrado capaz de sustentar e proteger aliados.');
 
--- Garante que exista a região "Casa Aberta"
+-- 2) Região "Casa Aberta" (cria se não existir e atualiza a descrição)
 INSERT INTO regiao (nome_regiao, descricao_regiao)
 SELECT 'Casa Aberta', 'Região principal do evento Casa Aberta (missões e coleta via marcador HIRO).'
-WHERE NOT EXISTS (
-  SELECT 1 FROM regiao WHERE nome_regiao = 'Casa Aberta'
-);
+WHERE NOT EXISTS (SELECT 1 FROM regiao WHERE nome_regiao = 'Casa Aberta');
 
--- IDs úteis
+UPDATE regiao
+SET descricao_regiao = 'Região principal do evento Casa Aberta (missões e coleta via marcador HIRO).'
+WHERE nome_regiao = 'Casa Aberta';
+
+-- 3) IDs úteis
 SET @id_regiao_casa_aberta = (SELECT id_regiao FROM regiao WHERE nome_regiao = 'Casa Aberta' LIMIT 1);
 SET @id_classe_guerreiro = (SELECT id_classe FROM classe WHERE nome_classe = 'Guerreiro' LIMIT 1);
 SET @id_classe_ladino = (SELECT id_classe FROM classe WHERE nome_classe = 'Ladino' LIMIT 1);
 SET @id_classe_mago = (SELECT id_classe FROM classe WHERE nome_classe = 'Mago' LIMIT 1);
 
+-- 4) Limpeza: remove dados antigos da Casa Aberta (para manter somente o conjunto atual)
+DELETE ei
+FROM equipe_item ei
+JOIN item i ON i.id_item = ei.id_item
+JOIN missao m ON m.id_missao = i.id_missao
+WHERE m.id_regiao = @id_regiao_casa_aberta;
+
+DELETE p
+FROM progresso p
+JOIN missao m ON m.id_missao = p.id_missao
+WHERE m.id_regiao = @id_regiao_casa_aberta;
+
+DELETE i
+FROM item i
+JOIN missao m ON m.id_missao = i.id_missao
+WHERE m.id_regiao = @id_regiao_casa_aberta;
+
+DELETE FROM missao
+WHERE id_regiao = @id_regiao_casa_aberta;
+
+-- 5) Inserção das missões e itens (conjunto atual)
+
 -- Missão 1: Recuperar as Joias do Selo (geral)
 INSERT INTO missao (nome_missao, descricao_missao, id_regiao, id_classe, tipo_missao)
-SELECT
+VALUES (
   'Recuperar as Joias do Selo',
-  'Encontrar os 2 Cryptex e o baú para obter as 3 joias. O baú é protegido pelo Esqueleto Espectral.',
+  'Encontrar um Cryptex e o baú para obter as 3 joias. O Cryptex e o baú estarão espalhados por todo o segundo andar, o cryptex e o baú nunca estarão em nenhuma sala',
   @id_regiao_casa_aberta,
   NULL,
   'Equipe'
-WHERE NOT EXISTS (
-  SELECT 1 FROM missao WHERE nome_missao = 'Recuperar as Joias do Selo'
 );
-SET @id_missao_joias = (SELECT id_missao FROM missao WHERE nome_missao = 'Recuperar as Joias do Selo' LIMIT 1);
+SET @id_missao_joias = LAST_INSERT_ID();
 
 INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Cryptex 1', 'Primeiro cryptex necessário para obter as joias do selo.', @id_missao_joias, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/recuperar_as_joias_do_selo/cryptex-1.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Cryptex 1');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Cryptex 2', 'Segundo cryptex necessário para obter as joias do selo.', @id_missao_joias, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/recuperar_as_joias_do_selo/cryptex-2.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Cryptex 2');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Baú do Esqueleto', 'Baú protegido pelo Esqueleto Espectral. Contém parte das joias.', @id_missao_joias, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/recuperar_as_joias_do_selo/bau-do-esqueleto.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Baú do Esqueleto');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Joias do Selo', 'Conjunto de joias necessárias para romper o selo (coletar 3).', @id_missao_joias, @id_classe_guerreiro, 3,
-       '/modelos-3d/casa_aberta/recuperar_as_joias_do_selo/joias-do-selo.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Joias do Selo');
+VALUES (
+  'Baú das Joias',
+  'Baú perdido pelo cenário que contém duas das três joias.',
+  @id_missao_joias,
+  @id_classe_guerreiro,
+  1,
+  '/modelos-3d/casa_aberta/recuperar_as_joias_do_selo/bau-das-joias.glb'
+);
 
 -- Missão 2: Encontrar a Espada Selada (guerreiro)
 INSERT INTO missao (nome_missao, descricao_missao, id_regiao, id_classe, tipo_missao)
-SELECT
+VALUES (
   'Encontrar a Espada Selada',
-  'Localizar a espada que servirá de chave para abrir a Câmara Selada.',
+  'Localizar a espada que servirá de chave para abrir a Câmara Selada. A Espada estará localizada em uma sala aleatória do segundo andar',
   @id_regiao_casa_aberta,
   @id_classe_guerreiro,
   'Equipe'
-WHERE NOT EXISTS (
-  SELECT 1 FROM missao WHERE nome_missao = 'Encontrar a Espada Selada'
 );
-SET @id_missao_espada = (SELECT id_missao FROM missao WHERE nome_missao = 'Encontrar a Espada Selada' LIMIT 1);
+SET @id_missao_espada = LAST_INSERT_ID();
 
 INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Explorar masmorra', 'Explorar a masmorra e encontrar pistas para a espada selada.', @id_missao_espada, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/encontrar_a_espada_selada/explorar-masmorra.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Explorar masmorra');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Encontrar local da espada', 'Encontrar o local exato onde a espada está selada.', @id_missao_espada, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/encontrar_a_espada_selada/local-da-espada.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Encontrar local da espada');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Superar guardiões', 'Vencer os guardiões que protegem o selo da espada.', @id_missao_espada, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/encontrar_a_espada_selada/guardioes.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Superar guardiões');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Espada Selada', 'A espada que abre a Câmara Selada.', @id_missao_espada, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/encontrar_a_espada_selada/espada-selada.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Espada Selada');
+VALUES (
+  'Espada Selada',
+  'A espada que abre a Câmara Selada.',
+  @id_missao_espada,
+  @id_classe_guerreiro,
+  1,
+  '/modelos-3d/casa_aberta/encontrar_a_espada_selada/espada-selada.glb'
+);
 
 -- Missão 3: Resolver os Desafios (geral)
 INSERT INTO missao (nome_missao, descricao_missao, id_regiao, id_classe, tipo_missao)
-SELECT
+VALUES (
   'Resolver os Desafios',
-  'Abrir os cryptex: Ladino deve pontuar no alvo e Mago resolve alquimia. O baú exige enfrentar um protetor da última joia.',
+  'Abrir o cryptex e o baú: O grupo deve somar 5 pontos no alvo para abrir o baú, e conseguir acertar a formação de 3 cores com tinta para abrir o cryptex',
   @id_regiao_casa_aberta,
   NULL,
   'Equipe'
-WHERE NOT EXISTS (
-  SELECT 1 FROM missao WHERE nome_missao = 'Resolver os Desafios'
 );
-SET @id_missao_desafios = (SELECT id_missao FROM missao WHERE nome_missao = 'Resolver os Desafios' LIMIT 1);
+SET @id_missao_desafios = LAST_INSERT_ID();
 
 INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Ladino: pontos no alvo', 'Pontuar no alvo (coletar 10 pontos).', @id_missao_desafios, @id_classe_ladino, 10,
-       '/modelos-3d/casa_aberta/resolver_os_desafios/pontos-no-alvo.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Ladino: pontos no alvo');
+VALUES (
+  '2a Joia: desafio de alquimia',
+  'Resolver o desafio de alquimia para abrir um cryptex.',
+  @id_missao_desafios,
+  @id_classe_mago,
+  1,
+  '/modelos-3d/casa_aberta/resolver_os_desafios/desafio-alquimia.glb'
+);
 
 INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Mago: desafio de alquimia', 'Resolver o desafio de alquimia para abrir um cryptex.', @id_missao_desafios, @id_classe_mago, 1,
-       '/modelos-3d/casa_aberta/resolver_os_desafios/alquimia.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Mago: desafio de alquimia');
+VALUES (
+  'Espada: encontrar espada',
+  'Localizar espada espalhada pelo segundo andar',
+  @id_missao_desafios,
+  @id_classe_guerreiro,
+  1,
+  '/modelos-3d/casa_aberta/resolver_os_desafios/espadaselada.glb'
+);
 
 INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Guerreiro: enfrentar protetor', 'Derrotar o protetor para liberar a última joia.', @id_missao_desafios, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/resolver_os_desafios/protetor.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Guerreiro: enfrentar protetor');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Última joia', 'Última joia obtida após completar o desafio.', @id_missao_desafios, @id_classe_guerreiro, 1,
-       '/modelos-3d/casa_aberta/resolver_os_desafios/ultima-joia.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Última joia');
+VALUES (
+  'Última joia',
+  'Última joia obtida após completar o desafio.',
+  @id_missao_desafios,
+  @id_classe_guerreiro,
+  1,
+  '/modelos-3d/casa_aberta/resolver_os_desafios/ultima-joia.glb'
+);
 
 -- Missão 4: Recuperar a Bomba Alquímica (mago)
 INSERT INTO missao (nome_missao, descricao_missao, id_regiao, id_classe, tipo_missao)
-SELECT
+VALUES (
   'Recuperar a Bomba Alquímica',
   'Desafio alternativo de alquimia para o Mago (opção extra para atingir o chefe final).',
   @id_regiao_casa_aberta,
   @id_classe_mago,
   'Equipe'
-WHERE NOT EXISTS (
-  SELECT 1 FROM missao WHERE nome_missao = 'Recuperar a Bomba Alquímica'
 );
-SET @id_missao_bomba = (SELECT id_missao FROM missao WHERE nome_missao = 'Recuperar a Bomba Alquímica' LIMIT 1);
+SET @id_missao_bomba = LAST_INSERT_ID();
 
 INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Combinar cores: Vermelha', 'Combinar a cor vermelha no desafio de alquimia.', @id_missao_bomba, @id_classe_mago, 1,
-       '/modelos-3d/casa_aberta/recuperar_a_bomba_alquimica/cor-vermelha.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Combinar cores: Vermelha');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Combinar cores: Cinza', 'Combinar a cor cinza no desafio de alquimia.', @id_missao_bomba, @id_classe_mago, 1,
-       '/modelos-3d/casa_aberta/recuperar_a_bomba_alquimica/cor-cinza.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Combinar cores: Cinza');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Combinar cores: Verde', 'Combinar a cor verde no desafio de alquimia.', @id_missao_bomba, @id_classe_mago, 1,
-       '/modelos-3d/casa_aberta/recuperar_a_bomba_alquimica/cor-verde.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Combinar cores: Verde');
-
-INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
-SELECT 'Criar Bomba Alquímica', 'Criar a bomba alquímica como resultado final do desafio.', @id_missao_bomba, @id_classe_mago, 1,
-       '/modelos-3d/casa_aberta/recuperar_a_bomba_alquimica/bomba-alquimica.glb'
-WHERE NOT EXISTS (SELECT 1 FROM item WHERE nome_item = 'Criar Bomba Alquímica');
+VALUES (
+  'Combinar cores: Vermelha',
+  'Combinar a cor vermelha no desafio de alquimia.',
+  @id_missao_bomba,
+  @id_classe_mago,
+  1,
+  '/modelos-3d/casa_aberta/recuperar_a_bomba_alquimica/cor-vermelha.glb'
+);
 
 COMMIT;

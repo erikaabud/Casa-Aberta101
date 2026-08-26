@@ -152,7 +152,7 @@ function ConteudoMarcador({ item }) {
 
         rotation="0 0 0"
 
-        scale="0.7 0.7 0.7"
+        scale="0.85 0.85 0.85"
 
         animation="
 

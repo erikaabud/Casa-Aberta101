@@ -6,6 +6,7 @@ import { VisualizacaoDesktop } from '../componentes/ficha-rpg/VisualizacaoDeskto
 import { VisualizacaoMobile } from '../componentes/ficha-rpg/VisualizacaoMobile';
 import { ModalQr } from '../componentes/ficha-rpg/ModalQr';
 import { coletarItemHiro, obterMinhaFicha } from '../servicos/jogoApi';
+import { precacheModelos3d } from '../servicos/precarregarModelos3d';
 import './PaginaFichaRpg.css';
 
 const ICONES_REGIAO = {
@@ -74,6 +75,20 @@ export default function PaginaFichaRpg() {
     () => ficha?.regioes?.find((regiao) => regiao.slug === territorioId) || ficha?.regioes?.[0] || null,
     [ficha, territorioId],
   );
+
+  useEffect(() => {
+    // Pré-carrega modelos 3D em background para acelerar quando abrir o modal da câmera.
+    // Não altera layout nem regras de negócio: apenas aquece cache do navegador.
+    const urls = [];
+    const missoes = dadosTerritorio?.missoes || [];
+    missoes.forEach((missao) => {
+      (missao?.itens || []).forEach((item) => {
+        const caminho = item?.caminho_modelo_3d || item?.caminho_imagem || '';
+        if (caminho) urls.push(caminho);
+      });
+    });
+    precacheModelos3d(urls);
+  }, [dadosTerritorio?.id_regiao]);
 
   useEffect(() => {
     if (!dadosTerritorio?.missoes?.length) {
