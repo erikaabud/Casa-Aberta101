@@ -33,7 +33,7 @@ export default function PaginaInicial() {
   };
 
   return (
-    <>
+    <div className='pagina-inicial'>
       <nav className="barra-navegacao">
         <div className="container-nav">
           <div className="logo-nav">
@@ -211,6 +211,6 @@ export default function PaginaInicial() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

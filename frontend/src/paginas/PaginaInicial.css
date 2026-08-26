@@ -7,16 +7,50 @@
   box-sizing: border-box;
 }
 
-body {
+.pagina-inicial {
+
   font-family: 'Cinzel', serif;
+
   background: #0a0a0a;
+
   min-height: 100vh;
+
   color: #d4c5a9;
+ 
   background-image: 
-    radial-gradient(ellipse at 10% 20%, rgba(88, 0, 0, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 80%, rgba(44, 0, 88, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.9) 0%, #0a0a0a 100%);
+
+    radial-gradient(
+
+      ellipse at 10% 20%,
+
+      rgba(88, 0, 0, 0.3) 0%,
+
+      transparent 50%
+
+    ),
+
+    radial-gradient(
+
+      ellipse at 90% 80%,
+
+      rgba(44, 0, 88, 0.3) 0%,
+
+      transparent 50%
+
+    ),
+
+    radial-gradient(
+
+      ellipse at 50% 50%,
+
+      rgba(0, 0, 0, 0.9) 0%,
+
+      #0a0a0a 100%
+
+    );
+
 }
+ 
 
 /* ===== BARRA DE NAVEGAÇÃO ===== */
 .barra-navegacao {
