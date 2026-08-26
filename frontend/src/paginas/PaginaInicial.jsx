@@ -1,15 +1,25 @@
 import { Link, useNavigate } from 'react-router-dom';
 import './PaginaInicial.css';
 import { useAuth } from '../contextos/AuthContext';
+import { useState } from 'react'; // <-- ADICIONE ESTA LINHA
 
 export default function PaginaInicial() {
   const navegar = useNavigate();
   const { estaLogado, estaEmEquipe, usuario, sair } = useAuth();
+  const [estaLendo, setEstaLendo] = useState(false); // <-- ADICIONE ESTA LINHA
 
   // Função para ler o conteúdo da página em voz alta
-  const lerConteudo = () => {
+  const lerConteudo = () => { // <-- MODIFIQUE ESTA FUNÇÃO
     // Verifica se o navegador suporta a API de síntese de fala
     if ('speechSynthesis' in window) {
+      
+      if (estaLendo) {
+        // Se está lendo, para a leitura
+        window.speechSynthesis.cancel();
+        setEstaLendo(false);
+        return;
+      }
+
       // Cancela qualquer fala em andamento
       window.speechSynthesis.cancel();
 
@@ -25,8 +35,19 @@ export default function PaginaInicial() {
       utterance.rate = 0.9; // Velocidade de leitura
       utterance.pitch = 1; // Tom de voz
       
+      // Quando terminar de falar, atualiza o estado
+      utterance.onend = () => {
+        setEstaLendo(false);
+      };
+
+      // Se ocorrer erro, atualiza o estado
+      utterance.onerror = () => {
+        setEstaLendo(false);
+      };
+      
       // Fala o conteúdo
       window.speechSynthesis.speak(utterance);
+      setEstaLendo(true);
     } else {
       alert('Seu navegador não suporta a funcionalidade de leitura em voz alta.');
     }
@@ -67,10 +88,10 @@ export default function PaginaInicial() {
                   e.preventDefault();
                   lerConteudo();
                 }}
-                aria-label="Ler conteúdo da página em voz alta"
-                title="Ler conteúdo da página"
+                aria-label={estaLendo ? "Parar leitura da página" : "Ler conteúdo da página em voz alta"} // <-- MODIFIQUE ESTA LINHA
+                title={estaLendo ? "Parar leitura" : "Ler conteúdo da página"} // <-- MODIFIQUE ESTA LINHA
               >
-                🔊 Acessibilidade
+                {estaLendo ? '🔊 Parar' : '🔊 Acessibilidade'} {/* <-- MODIFIQUE ESTA LINHA */}
               </Link>
             </li>
             <li><Link
