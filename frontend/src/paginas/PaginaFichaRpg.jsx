@@ -5,6 +5,7 @@ import { BarraModoDispositivo } from '../componentes/ficha-rpg/BarraModoDisposit
 import { VisualizacaoDesktop } from '../componentes/ficha-rpg/VisualizacaoDesktop';
 import { VisualizacaoMobile } from '../componentes/ficha-rpg/VisualizacaoMobile';
 import { ModalQr } from '../componentes/ficha-rpg/ModalQr';
+import { TelaVitoria } from '../componentes/ficha-rpg/TelaVitoria';
 import { coletarItemHiro, obterMinhaFicha } from '../servicos/jogoApi';
 import { precacheModelos3d } from '../servicos/precarregarModelos3d';
 import './PaginaFichaRpg.css';
@@ -27,6 +28,7 @@ export default function PaginaFichaRpg() {
   const [carregando, setCarregando] = useState(true);
   const [territorioId, setTerritorioId] = useState('');
   const [missaoSelecionadaId, setMissaoSelecionadaId] = useState(null);
+  const [mostrarVitoria, setMostrarVitoria] = useState(true);
 
   async function carregarFicha({ exibirCarregando = true, limparMensagem = true } = {}) {
     if (exibirCarregando) {
@@ -117,6 +119,36 @@ export default function PaginaFichaRpg() {
       }) || null,
     [missaoSelecionada],
   );
+
+  // Contador geral: soma as missões de TODAS as regiões (não só a região atual).
+  const progressoGeral = useMemo(() => {
+    const regioes = ficha?.regioes || [];
+    let totalMissoes = 0;
+    let missoesConcluidas = 0;
+
+    regioes.forEach((regiao) => {
+      (regiao.missoes || []).forEach((missao) => {
+        totalMissoes += 1;
+        if (missao.concluida) missoesConcluidas += 1;
+      });
+    });
+
+    return {
+      totalRegioes: regioes.length,
+      totalMissoes,
+      missoesConcluidas,
+      jogoConcluido: totalMissoes > 0 && missoesConcluidas === totalMissoes,
+    };
+  }, [ficha]);
+
+  // Dispara a tela de vitória só no momento em que o jogo passa a estar 100% concluído,
+  // e não toda vez que a ficha recarrega (evita reabrir a tela sem parar).
+  useEffect(() => {
+    if (progressoGeral.jogoConcluido) {
+      setMostrarVitoria(true);
+    }
+  }, [progressoGeral.jogoConcluido]);
+  
 
   async function lidarColeta(item) {
     setMostrarModalQr(false);
@@ -258,6 +290,14 @@ export default function PaginaFichaRpg() {
           item={itemSelecionado}
           aoColetar={lidarColeta}
           aoFechar={() => setMostrarModalQr(false)}
+        />
+      )}
+
+      {mostrarVitoria && (
+        <TelaVitoria
+          totalMissoes={progressoGeral.totalMissoes}
+          nomeEquipe={ficha?.equipe?.nome_equipe}
+          aoFechar={() => setMostrarVitoria(false)}
         />
       )}
     </div>
