@@ -124,7 +124,7 @@ VALUES (
   @id_missao_desafios,
   @id_classe_guerreiro,
   1,
-  '/modelos-3d/casa_aberta/resolver_os_desafios/espadaselada.glb'
+  '/modelos-3d/casa_aberta/resolver_os_desafios/espada-selada.glb'
 );
 
 INSERT INTO item (nome_item, descricao_item, id_missao, id_classe, quantidade_necessaria, caminho_imagem)
